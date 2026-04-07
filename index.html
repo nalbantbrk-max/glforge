@@ -4092,15 +4092,25 @@ body.sidebar-expanded .tab-panel.active {
 
 // ── SUPABASE VERİ YÖNETİCİSİ ──────────────────────────────────────────
 async function sbSet(key, value) {
-  if (!window._gkCompanyId) return;
+  if (!window._gkCompanyId) {
+    console.warn('sbSet: company_id yok, yazma atlandı →', key);
+    return;
+  }
   try {
-    await window_supabase.from('store').upsert({
+    var { error } = await window_supabase.from('store').upsert({
       company_id: window._gkCompanyId,
       key: key,
       value: value,
       updated_at: new Date().toISOString()
     }, { onConflict: 'company_id,key' });
-  } catch(e) { console.warn('sbSet hatası:', key, e); }
+    if (error) {
+      console.error('sbSet RLS/DB hatası:', key, error.message, error.code);
+      showToast('⚠️ Kayıt sunucuya yazılamadı: ' + (error.message || error.code), 5000);
+    }
+  } catch(e) {
+    console.error('sbSet ağ hatası:', key, e);
+    showToast('⚠️ Sunucuya bağlanılamadı, kayıt kaydedilmedi', 5000);
+  }
 }
 
 async function loadAllFromSupabase() {
@@ -5175,7 +5185,7 @@ function saveJobs(){
 }
 
 function togglePaidWithKasa(id) {
-  if(!checkAdminRole('Tahsilat işlemi')) return;
+  if(!checkAdminOnly('Tahsilat işlemi')) return;
   var j = jobs.find(function(x){return x.id===id;}); if(!j) return;
   if (!j.paid) {
     // Drawer ile onay al
@@ -5183,7 +5193,7 @@ function togglePaidWithKasa(id) {
     return;
   }
   // Geri alma — basit onay yeterli
-  if(!checkAdminRole('Tahsilat geri alma')) return false;
+  if(!checkAdminOnly('Tahsilat geri alma')) return false;
   if (!confirm('Tahsilat işaretini KALDIRMAK istiyor musunuz?\nKasa gelir kaydı silinecek.')) return false;
   j.paid = false;
   j.paidDate = '';
@@ -5861,7 +5871,7 @@ function showDetail(id) {
 // ════════════════════════════════════════════════════
 
 function cariTahsilatAl(musteriAdi) {
-  if(!checkAdminRole('Tahsilat alma')) return;
+  if(!checkAdminOnly('Tahsilat alma')) return;
   var acikIsler = jobs.filter(function(j) {
     return j.customerName === musteriAdi && !j.paid;
   });
@@ -5908,7 +5918,7 @@ function closeTahsilatModal() {
 }
 
 function saveTahsilat() {
-  if(!checkAdminRole('Tahsilat kaydı')) return;
+  if(!checkAdminOnly('Tahsilat kaydı')) return;
   var musteriAdi = document.getElementById('thMusteri').value;
   var tarih      = document.getElementById('thTarih').value;
   var odeme      = document.getElementById('thOdeme').value;
@@ -6954,6 +6964,12 @@ function applyRoleRestrictions() {
 
 // Yetki kontrolü — viewer tıklayınca toast gösterir, false döner
 function checkAdminRole(islemAdi) {
+  if (window._gkRole === 'admin' || window._gkRole === 'editor') return true;
+  showToast('⛔ ' + (islemAdi || 'Bu işlem') + ' için yetkiniz yok.');
+  return false;
+}
+
+function checkAdminOnly(islemAdi) {
   if (window._gkRole === 'admin') return true;
   showToast('⛔ ' + (islemAdi || 'Bu işlem') + ' için yetkiniz yok.');
   return false;
@@ -8436,7 +8452,7 @@ function closeFaturaModal(e) {
   if (!e || e.target === document.getElementById('faturaModal')) document.getElementById('faturaModal').classList.remove('open'); document.body.style.overflow='';
 }
 function saveFatura() {
-  if(!checkAdminRole('Fatura düzenleme')) return;
+  if(!checkAdminOnly('Fatura düzenleme')) return;
   var no = document.getElementById('ftNo').value.trim().toUpperCase();
   var musteri = document.getElementById('ftMusteri').value.trim().toUpperCase();
   if (!no || !musteri) { showToast('⚠️ Fatura no ve müşteri zorunludur'); return; }
@@ -8463,21 +8479,21 @@ function saveFatura() {
   showToast('✓ Fatura kaydedildi');
 }
 function markFaturaTahsil(id) {
-  if(!checkAdminRole('Fatura tahsil işlemi')) return;
+  if(!checkAdminOnly('Fatura tahsil işlemi')) return;
   var f = faturalar.find(function(x){return x.id===id;}); if(!f) return;
   if(!confirm(f.no + ' numaralı fatura tahsil edildi olarak işaretlensin mi?')) return;
   f.durum = 'tahsil'; saveFaturalar(); renderFaturalar();
   showToast('✓ Tahsil edildi olarak işaretlendi');
 }
 function revertFaturaTahsil(id) {
-  if(!checkAdminRole('Fatura geri alma')) return;
+  if(!checkAdminOnly('Fatura geri alma')) return;
   var f = faturalar.find(function(x){return x.id===id;}); if(!f) return;
   if(!confirm(f.no + ' numaralı fatura "Bekliyor" durumuna alınsın mı?')) return;
   f.durum = 'bekliyor'; saveFaturalar(); renderFaturalar();
   showToast('↩ Fatura bekliyor durumuna alındı');
 }
 function deleteFatura(id) {
-  if(!checkAdminRole('Fatura silme')) return;
+  if(!checkAdminOnly('Fatura silme')) return;
   if(!confirm('Bu faturayı silmek istediğinize emin misiniz?')) return;
   faturalar = faturalar.filter(function(x){return x.id!==id;}); saveFaturalar(); renderFaturalar();
 }
@@ -10190,7 +10206,7 @@ function assignMusteriFromDef(id) { acSelectMusteri(id); }
 // ŞOFÖR ÖDEME + HIZLI KOPYALA
 // ═══════════════════════════════════════════════════════
 function toggleDriverPaid(id) {
-  if(!checkAdminRole('Şoför ödeme işlemi')) return;
+  if(!checkAdminOnly('Şoför ödeme işlemi')) return;
   var j = jobs.find(function(x){return x.id===id;});
   if (!j) return;
   if (!j.driverPaid) {
@@ -10706,7 +10722,7 @@ function closeFaturaUret() {
 }
 
 function saveFaturaUret() {
-  if(!checkAdminRole('Fatura oluşturma')) return;
+  if(!checkAdminOnly('Fatura oluşturma')) return;
   var sel = document.getElementById('faturaJobSec');
   if (!sel || !sel.value) { showToast('⚠️ Önce bir iş seçin'); return; }
   var jobId = parseInt(sel.value);
@@ -10972,7 +10988,7 @@ function saveKasaData() {
 }
 
 function openKasaModal(id){
-  if(!checkAdminRole('Kasa girişi')) return;
+  if(!checkAdminOnly('Kasa girişi')) return;
   var g=function(eid){return document.getElementById(eid);};
   var set=function(eid,v){var el=g(eid);if(el)el.value=v||'';};
   set('kasaAciklama','');set('kasaTutar','');set('kasaEditId','');
@@ -11085,7 +11101,7 @@ function onKasaFaturaSecildi() {
 }
 
 function saveKasa(){
-  if(!checkAdminRole('Kasa kaydı')) return;
+  if(!checkAdminOnly('Kasa kaydı')) return;
   var g=function(id){var el=document.getElementById(id);return el?el.value:'';};
   var ac=g('kasaAciklama').trim(),tu=parseFloat(g('kasaTutar')),ta=g('kasaTarih');
   if(!ac||isNaN(tu)||!tu||!ta){showToast('⚠️ Açıklama, tutar ve tarih zorunludur');return;}
@@ -11125,7 +11141,7 @@ function saveKasa(){
   if(!faturaLink) showToast(k.tur==='gelir'?'Gelir kaydedildi':'Gider kaydedildi');
 }
 function deleteKasa(id) {
-  if(!checkAdminRole('Kasa kaydı silme')) return;
+  if(!checkAdminOnly('Kasa kaydı silme')) return;
   var k = kasaKayitlar.find(function(x){ return x.id===id; });
   if (!k) return;
   if (k.otomatik) {
@@ -13102,7 +13118,7 @@ function filterSoforler(tip) {
 var _odemeDrawerData = null;
 
 function openOdemeDrawer(type, jobId) {
-  if(!checkAdminRole('Ödeme işlemi')) return;
+  if(!checkAdminOnly('Ödeme işlemi')) return;
   var j = jobs.find(function(x){return x.id===jobId;});
   if (!j) return;
   _odemeDrawerData = {type: type, jobId: jobId};
@@ -13170,7 +13186,7 @@ function closeOdemeDrawer() {
 }
 
 function confirmOdemeDrawer() {
-  if(!checkAdminRole('Ödeme/Tahsilat onayı')) return;
+  if(!checkAdminOnly('Ödeme/Tahsilat onayı')) return;
   if (!_odemeDrawerData) return;
   var type = _odemeDrawerData.type;
 
