@@ -872,7 +872,7 @@ tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .dash-alert-text{font-size:12px;color:var(--text)}
 .dash-alert-text strong{color:var(--red)}
 .dash-alert-banner.warn .dash-alert-text strong{color:var(--orange)}
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(15,23,42,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#F1F5F9;padding:12px 22px 6px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;z-index:99999;white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);min-width:160px;text-align:center}
+#toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(15,23,42,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#F1F5F9;padding:12px 22px 6px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;z-index:99999;white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);min-width:160px;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #toast-bar{height:3px;border-radius:2px;background:var(--accent);margin-top:8px;width:100%;transform-origin:left;animation:none}
 @keyframes toastProgress{from{transform:scaleX(1)}to{transform:scaleX(0)}}
@@ -2501,7 +2501,7 @@ body.sidebar-expanded .tab-panel.active {
       </div>
 
       <input type="hidden" id="editJobId">
-      <button class="btn-save" onclick="addJob()">Kaydet</button>
+      <button id="saveJobBtn" class="btn-save" onclick="addJob()">Kaydet</button>
       <button onclick="clearForm()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted);padding:9px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;margin-top:8px">✕ Temizle</button>
     </div>
 </div>
@@ -4367,7 +4367,7 @@ function switchTab(tab) {
   var panel = document.getElementById('panel-'+tab);
   if (!panel) return;
   panel.classList.add('active');
-  panel.style.display = '';
+  panel.style.display = 'block';
   var tabBtn = document.getElementById('tab-'+tab);
   if (tabBtn) tabBtn.classList.add('active');
   if (tab === 'dashboard') { renderDashboard(); setTimeout(initDashMap, 80); }
@@ -5904,9 +5904,9 @@ function updateHeader() {
   var profit  = ytdJobs.reduce(function(s,j){ return s + (parseFloat(j.profit)||0); }, 0);
   var receivable = jobs.filter(function(j){ return !j.paid; }).reduce(function(s,j){ return s+j.sellTotal; }, 0);
 
-  var elCiro = document.getElementById('hCiro');
-  var elKar  = document.getElementById('hKar');
-  var elAcik = document.getElementById('hAcik');
+  var elCiro = document.getElementById('mhCiro');
+  var elKar  = document.getElementById('mhKar');
+  var elAcik = document.getElementById('mhAcik');
 
   // Churn risk hesabı
   var _churnMusteriler = [];
