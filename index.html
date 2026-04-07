@@ -883,7 +883,11 @@ tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 @keyframes toastProgress{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 .fatura-uret-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--modal-overlay);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .2s}
 .fatura-uret-overlay.open{opacity:1;pointer-events:auto}
-.fatura-uret-box{background:var(--surface);border-radius:16px;width:100%;max-width:720px;box-shadow:0 20px 60px rgba(15,20,40,.3),0 4px 16px rgba(15,20,40,.15);overflow:hidden}
+.fatura-uret-box{background:var(--surface);border-radius:16px;width:100%;max-width:1200px;box-shadow:0 20px 60px rgba(15,20,40,.3),0 4px 16px rgba(15,20,40,.15);overflow:hidden}
+.fatura-uret-body{display:flex;min-height:560px}
+.fatura-uret-left{width:340px;flex-shrink:0;overflow-y:auto;border-right:1px solid var(--border2);padding:16px 20px;background:var(--surface2)}
+.fatura-uret-right{flex:1;overflow-y:auto;background:#f0f0f0;min-height:560px}
+@media(max-width:768px){.fatura-uret-body{flex-direction:column}.fatura-uret-left{width:100%;max-height:360px;border-right:none;border-bottom:1px solid var(--border2)}.fatura-uret-right{min-height:400px}}
 .btn-print{background:var(--accent);color:var(--text);border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
 #aysonuRaporPrint{display:none}
 @media print{
@@ -3629,7 +3633,7 @@ body.sidebar-expanded .tab-panel.active {
 
 <!-- FATURA MODAL -->
 <div class="sf-modal-overlay" id="faturaModal" onclick="if(event.target===this)closeFaturaModal()">
-  <div class="sf-modal" style="max-width:500px">
+  <div class="sf-modal" style="max-width:900px">
     <div class="sf-modal-title" style="position:relative;padding-right:36px">Fatura Kaydı<button onclick="closeFaturaModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;padding:4px 8px;z-index:10" title="Kapat">×</button></div>
     <input type="hidden" id="ftId">
     <div class="sf-two">
@@ -3712,34 +3716,51 @@ body.sidebar-expanded .tab-panel.active {
       </div>
       <button onclick="closeFaturaUret()" style="background:rgba(255,255,255,0.08);border:none;color:#94a3b8;font-size:18px;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">✕</button>
     </div>
-    <!-- Form alanları -->
-    <div style="padding:16px 24px;background:var(--surface2);border-bottom:1px solid var(--border2)">
-      <div class="sf-two" style="gap:14px">
-        <div class="field">
-          <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">İş Seç</label>
-          <select id="faturaJobSec" onchange="calcFatura()" style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);font-family:'DM Sans',sans-serif;padding:9px 12px;font-size:13px;color:var(--text);width:100%;margin-top:4px">
-            <option value="">İş seç...</option>
-          </select>
-        </div>
-        <div class="field">
-          <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Fatura No</label>
-          <div style="display:flex;gap:8px;margin-top:4px">
-            <input id="faturaUretNo" placeholder="GKR2026..." style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);flex:1;padding:9px 12px;font-size:13px;font-family:monospace;color:#1d4ed8;font-weight:600">
-            <button onclick="refreshFaturaNo()" style="background:var(--input-bg);border:1.5px solid var(--border2);color:var(--muted);padding:9px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;font-size:11px;font-family:'DM Sans',sans-serif;font-weight:600">↺ Yenile</button>
+    <!-- Side-by-side içerik alanı -->
+    <div class="fatura-uret-body">
+      <!-- Sol panel: form alanları -->
+      <div class="fatura-uret-left">
+        <div class="sf-two" style="gap:14px">
+          <div class="field">
+            <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">İş Seç</label>
+            <select id="faturaJobSec" onchange="calcFatura()" style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);font-family:'DM Sans',sans-serif;padding:9px 12px;font-size:13px;color:var(--text);width:100%;margin-top:4px">
+              <option value="">İş seç...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Fatura No</label>
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <input id="faturaUretNo" placeholder="GKR2026..." style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);flex:1;padding:9px 12px;font-size:13px;font-family:monospace;color:#1d4ed8;font-weight:600">
+              <button onclick="refreshFaturaNo()" style="background:var(--input-bg);border:1.5px solid var(--border2);color:var(--muted);padding:9px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;font-size:11px;font-family:'DM Sans',sans-serif;font-weight:600">↺ Yenile</button>
+            </div>
           </div>
         </div>
+        <div class="sf-two" style="gap:14px;margin-top:10px">
+          <div class="field"><label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Fatura Tarihi</label><input type="date" id="faturaUretTarih" onchange="refreshFaturaPreview()" style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);width:100%;padding:9px 12px;font-size:13px;margin-top:4px;color:var(--text)"></div>
+          <div class="field"><label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Vade Tarihi</label><input type="date" id="faturaUretVade" onchange="refreshFaturaPreview()" style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);width:100%;padding:9px 12px;font-size:13px;margin-top:4px;color:var(--text)"></div>
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Referans No <span style="font-weight:400;text-transform:none;letter-spacing:0">(opsiyonel)</span></label>
+          <input id="faturaRefNo" placeholder="İHA No, sipariş no..." onchange="refreshFaturaPreview()" oninput="refreshFaturaPreview()" style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);width:100%;padding:9px 12px;font-size:13px;margin-top:4px;color:var(--text)">
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Yükleyici Firma <span style="font-weight:400;text-transform:none;letter-spacing:0">(opsiyonel)</span></label>
+          <input id="faturaYukleyici" placeholder="Firma adı..." oninput="refreshFaturaPreview()" onchange="refreshFaturaPreview()" style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);width:100%;padding:9px 12px;font-size:13px;margin-top:4px;color:var(--text)">
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Plaka <span style="font-weight:400;text-transform:none;letter-spacing:0">(opsiyonel)</span></label>
+          <input id="faturaPlakaMobil" placeholder="34 ABC 123" oninput="refreshFaturaPreview()" onchange="refreshFaturaPreview()" style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);width:100%;padding:9px 12px;font-size:13px;margin-top:4px;color:var(--text)">
+        </div>
+        <div class="field" style="margin-top:10px">
+          <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">İrsaliye No <span style="font-weight:400;text-transform:none;letter-spacing:0">(opsiyonel)</span></label>
+          <input id="faturaIrsaliyeNo" placeholder="İrsaliye numarası..." oninput="refreshFaturaPreview()" onchange="refreshFaturaPreview()" style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);width:100%;padding:9px 12px;font-size:13px;margin-top:4px;color:var(--text)">
+        </div>
       </div>
-      <div class="sf-two" style="gap:14px;margin-top:10px">
-        <div class="field"><label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Fatura Tarihi</label><input type="date" id="faturaUretTarih" onchange="refreshFaturaPreview()" style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);width:100%;padding:9px 12px;font-size:13px;margin-top:4px;color:var(--text)"></div>
-        <div class="field"><label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Vade Tarihi</label><input type="date" id="faturaUretVade" onchange="refreshFaturaPreview()" style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);width:100%;padding:9px 12px;font-size:13px;margin-top:4px;color:var(--text)"></div>
-      </div>
-      <div class="field" style="margin-top:10px">
-        <label style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Referans / İrsaliye No <span style="font-weight:400;text-transform:none;letter-spacing:0">(opsiyonel)</span></label>
-        <input id="faturaRefNo" placeholder="İHA No, sipariş no, irsaliye no..." onchange="refreshFaturaPreview()" oninput="refreshFaturaPreview()" style="border-radius:8px;border:1.5px solid var(--border2);background:var(--input-bg);width:100%;padding:9px 12px;font-size:13px;margin-top:4px;color:var(--text)">
+      <!-- Sağ panel: fatura önizleme -->
+      <div class="fatura-uret-right">
+        <div id="faturaPreviewWrap" style="padding:0;min-height:560px;overflow-y:auto"></div>
       </div>
     </div>
-    <!-- Fatura önizleme -->
-    <div id="faturaPreviewWrap" style="padding:0;max-height:460px;overflow-y:auto;background:var(--surface)"></div>
     <!-- Butonlar -->
     <div style="padding:14px 24px;display:flex;gap:10px;background:var(--surface2);border-top:1px solid var(--border2)">
       <button onclick="closeFaturaUret()" style="flex:1;background:var(--input-bg);border:1.5px solid var(--border2);color:var(--muted);padding:11px;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px">İptal</button>
@@ -10669,6 +10690,9 @@ function buildFaturaHTML(j, faturaNo) {
   var sp = sirketProfil;
   var showTev = document.getElementById('faturaShowTevkifat') ? document.getElementById('faturaShowTevkifat').checked : false;
   var refNoVal = (document.getElementById('faturaRefNo')||{}).value||'';
+  var yukleyiciFirma = (document.getElementById('faturaYukleyici')||{}).value||'';
+  var plakaMobil = (document.getElementById('faturaPlakaMobil')||{}).value||'';
+  var irsaliyeNo = (document.getElementById('faturaIrsaliyeNo')||{}).value||'';
   var tarih = j.date ? j.date.split('-').reverse().join('-') : '';
   var now = new Date();
   var nowStr = String(now.getDate()).padStart(2,'0')+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+now.getFullYear();
@@ -10691,8 +10715,10 @@ function buildFaturaHTML(j, faturaNo) {
   var yazi = tutarYazi(Math.round(odenecek));
   var hizmetAdi = (j.origin||'?')+' - '+(j.destination||'?')+' KOMPLE NAKLİYE BEDELİ';
   if (j.cargoType) hizmetAdi += '\n'+j.cargoType.toUpperCase();
-  var driverLine = ((j.driverFirst||'')+' '+(j.driverLast||'')+' '+(j.plate||'')).trim();
-  if (j.plateDorse) driverLine += ' / '+j.plateDorse;
+  var driverLine = '';
+  if (plakaMobil) { driverLine = plakaMobil; }
+  else { driverLine = ((j.driverFirst||'')+' '+(j.driverLast||'')+' '+(j.plate||'')).trim(); }
+  if (j.plateDorse && !plakaMobil) driverLine += (driverLine?' / ':'')+j.plateDorse;
   var mDef = j._musteriDef;
   var musteriAdi = j.customerName||'';
   var musteriVKN = mDef?(mDef.vergiNo||''):'';
@@ -10700,6 +10726,8 @@ function buildFaturaHTML(j, faturaNo) {
   var ettn = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);});
   var tevNot = (showTev && j.tevkifatOran>0) ? '' : '" Alt y\u00fcklenic\u0069 taraf\u0131ndan yap\u0131lan ta\u015f\u0131ma h\u0069zmet\u0069 oldu\u011fundan KDV G.U.T ( 1/C-2.1.3.2.11.2 ) gere\u011f\u0069 Tevk\u0069fat uygulanmam\u0131\u015ft\u0131r "';
   var kalemDesc = hizmetAdi.replace(/\n/g,'<br>');
+  if (yukleyiciFirma) kalemDesc += '<br><span style="font-size:8pt;font-weight:600;color:#222">Yükleyici: '+yukleyiciFirma+'</span>';
+  if (irsaliyeNo) kalemDesc += '<br><span style="font-size:7.5pt;color:#333;font-weight:500">İrsaliye No: '+irsaliyeNo+'</span>';
   if (refNoVal) kalemDesc += '<br><span style="font-size:7.5pt;color:#333;font-weight:500">'+refNoVal+'</span>';
   if (driverLine) kalemDesc += '<br><span style="font-size:7pt;color:#666">'+driverLine+'</span>';
   var kalemHtml = '<tr>'
@@ -10720,15 +10748,15 @@ function buildFaturaHTML(j, faturaNo) {
   var ibanTl  = sp.ibanTl ||'TR75 0006 4000 0014 2171 5215 07';
   var ibanUsd = sp.ibanUsd||'TR57 0006 4000 0024 2170 5715 17';
   var ibanEur = sp.ibanEur||'TR71 0006 4000 0024 2170 6238 39';
-  var spAdi   = (sp.adi  ||'G\u00d6KER TAHM\u0130NAT LOJ\u0130ST\u0130K \u0130THALA T \u0130HRACA T L\u0130M\u0130TED \u015e\u0130RKET\u0130').toUpperCase();
-  var spAdres = sp.adres ||'SUNLAR MAH. \u00c7\u0130NAR SOKAK, DO\u011eU APARTMAN No:142 YEN\u0130MAHALLE/ ANKARA';
-  var spTel   = sp.tel   ||'5124579921';
-  var spWeb   = sp.web   ||'www.gokerlojistik.com.tr';
-  var spEmail = sp.email ||'asilasia@hotmail.com';
-  var spVD    = sp.vd    ||'YEN\u0130MAHALLE';
-  var spVKN   = sp.vkn   ||sp.vn||'9620336216';
+  var spAdi   = (sp.adi  ||'GÖKER TAAHHÜT LOJİSTİK İTHALAT İHRACAT LİMİTED ŞİRKETİ').toUpperCase();
+  var spAdres = sp.adres ||'IŞINLAR MAH. ÇINAR SOKAK. DOĞU APARTMANI No:142 YENİMAHALLE/ ANKARA';
+  var spTel   = sp.tel   ||'5324579831';
+  var spWeb   = sp.web   ||'www.gokerlogistics.com.tr';
+  var spEmail = sp.email ||'aisilaa@hotmail.com';
+  var spVD    = sp.vd    ||'YENİMAHALLE';
+  var spVKN   = sp.vkn   ||sp.vn||'4020336216';
   var spTSN   = sp.tsn   ||'416112';
-  var spMersis= sp.mersis||'0462033621600001';
+  var spMersis= sp.mersis||'04020336216000001';
 
   var docHTML = '<style>'
     +'*{box-sizing:border-box;margin:0;padding:0}'
@@ -12555,16 +12583,16 @@ function switchAyarlarTab(tab) {
 function loadSirketProfil() {
   var p = sirketProfil;
   // İlk açılışta Göker varsayılan değerlerini doldur
-  if (!p.adi) {
-    p.adi    = 'GÖKER TAHMİNAT LOJİSTİK İTHALAT İHRACAT LİMİTED ŞİRKETİ';
-    p.adres  = 'SUNLAR MAH. ÇİNAR SOKAK, DOĞU APARTMAN No:142 YENİMAHALLE/ ANKARA';
-    p.tel    = '5124579921';
-    p.web    = 'www.gokerlojistik.com.tr';
-    p.email  = 'asilasia@hotmail.com';
+  if (!p.adi || p.adi.includes('TAHMİNAT')) {
+    p.adi    = 'GÖKER TAAHHÜT LOJİSTİK İTHALAT İHRACAT LİMİTED ŞİRKETİ';
+    p.adres  = 'IŞINLAR MAH. ÇINAR SOKAK. DOĞU APARTMANI No:142 YENİMAHALLE/ ANKARA';
+    p.tel    = '5324579831';
+    p.web    = 'www.gokerlogistics.com.tr';
+    p.email  = 'aisilaa@hotmail.com';
     p.vd     = 'YENİMAHALLE';
-    p.vkn    = '9620336216';
+    p.vkn    = '4020336216';
     p.tsn    = '416112';
-    p.mersis = '0462033621600001';
+    p.mersis = '04020336216000001';
     p.bankaAdi = 'İŞ BANKASI';
     p.ibanTl   = 'TR75 0006 4000 0014 2171 5215 07';
     p.ibanUsd  = 'TR57 0006 4000 0024 2170 5715 17';
