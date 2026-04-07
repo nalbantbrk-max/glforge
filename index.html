@@ -3421,6 +3421,17 @@ body.sidebar-expanded .tab-panel.active {
           </label>
           <input type="file" id="ruhsatFile" accept="image/*" style="display:none" onchange="handleSoforDoc('ruhsat',this)">
         </div>
+        <div class="field">
+          <label>SRC Belgesi</label>
+          <div id="srcPreview" style="display:none;margin-bottom:6px;position:relative">
+            <img id="srcBelgeImg" src="" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">
+            <button onclick="clearSoforDoc('src')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;line-height:1">×</button>
+          </div>
+          <label for="srcBelgeFile" style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--surface2);border:1px dashed var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--muted);justify-content:center">
+            📷 SRC Ekle
+          </label>
+          <input type="file" id="srcBelgeFile" accept="image/*" style="display:none" onchange="handleSoforDoc('src',this)">
+        </div>
       </div>
     </div>
 
@@ -3935,6 +3946,18 @@ body.sidebar-expanded .tab-panel.active {
         <option value="kk">Kredi Kartı</option>
         <option value="cek">Çek / Senet</option>
       </select>
+    </div>
+    <div class="field">
+      <label>Fiş / Belge (isteğe bağlı)</label>
+      <div id="kasaBelgePreview" style="display:none;margin-bottom:6px;position:relative">
+        <img id="kasaBelgeImg" src="" style="width:100%;max-height:100px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">
+        <button onclick="clearKasaBelge()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;line-height:1">×</button>
+      </div>
+      <div id="kasaBelgePdfName" style="display:none;font-size:11px;color:var(--muted);padding:4px 0"></div>
+      <label for="kasaBelgeFile" style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:var(--surface2);border:1px dashed var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--muted);justify-content:center">
+        📎 Fiş / Belge Ekle
+      </label>
+      <input type="file" id="kasaBelgeFile" accept="image/*,application/pdf" style="display:none" onchange="handleKasaBelge(this)">
     </div>
     <div style="display:flex;gap:10px;margin-top:8px">
       <button onclick="closeKasaModal()" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600">İptal</button>
@@ -7763,7 +7786,7 @@ function openSoforModal(id) {
   var _saT=document.getElementById('sfAracTip'); if(_saT) _saT.value='';
   var _spL=document.getElementById('sfPlaka'); if(_spL) _spL.value='';
   document.getElementById('soforEditId').value = '';
-  clearSoforDoc('ehliyet'); clearSoforDoc('ruhsat');
+  clearSoforDoc('ehliyet'); clearSoforDoc('ruhsat'); clearSoforDoc('src');
   document.getElementById('soforModal').classList.add('open'); document.body.style.overflow='hidden';
 }
 function editSofor(id) {
@@ -7780,9 +7803,10 @@ function editSofor(id) {
   var _saT2=document.getElementById('sfAracTip'); if(_saT2) _saT2.value=s.aracTip||'';
   var _spL=document.getElementById('sfPlaka'); if(_spL) _spL.value=s.plaka||'';
   document.getElementById('soforNot').value = s.not || '';
-  clearSoforDoc('ehliyet'); clearSoforDoc('ruhsat');
+  clearSoforDoc('ehliyet'); clearSoforDoc('ruhsat'); clearSoforDoc('src');
   if (s.ehliyetImg) { document.getElementById('ehliyetImg').src=s.ehliyetImg; document.getElementById('ehliyetPreview').style.display='block'; }
   if (s.ruhsatImg)  { document.getElementById('ruhsatImg').src=s.ruhsatImg;   document.getElementById('ruhsatPreview').style.display='block'; }
+  if (s.srcImg)     { document.getElementById('srcBelgeImg').src=s.srcImg;     document.getElementById('srcPreview').style.display='block'; }
   document.getElementById('soforModal').classList.add('open'); document.body.style.overflow='hidden';
 }
 function closeSoforModal(e) {
@@ -7800,9 +7824,12 @@ function handleSoforDoc(tip, input) {
     if (tip === 'ehliyet') {
       document.getElementById('ehliyetImg').src = data;
       document.getElementById('ehliyetPreview').style.display = 'block';
-    } else {
+    } else if (tip === 'ruhsat') {
       document.getElementById('ruhsatImg').src = data;
       document.getElementById('ruhsatPreview').style.display = 'block';
+    } else {
+      document.getElementById('srcBelgeImg').src = data;
+      document.getElementById('srcPreview').style.display = 'block';
     }
   });
 }
@@ -7812,10 +7839,14 @@ function clearSoforDoc(tip) {
     document.getElementById('ehliyetImg').src = '';
     document.getElementById('ehliyetPreview').style.display = 'none';
     document.getElementById('ehliyetFile').value = '';
-  } else {
+  } else if (tip === 'ruhsat') {
     document.getElementById('ruhsatImg').src = '';
     document.getElementById('ruhsatPreview').style.display = 'none';
     document.getElementById('ruhsatFile').value = '';
+  } else {
+    document.getElementById('srcBelgeImg').src = '';
+    document.getElementById('srcPreview').style.display = 'none';
+    document.getElementById('srcBelgeFile').value = '';
   }
 }
 
@@ -7840,10 +7871,13 @@ function saveSofor() {
   var existingSofor = soforler.find(function(x){return x.id===id;});
   var prevEhliyet = existingSofor ? (existingSofor.ehliyetImg||'') : '';
   var prevRuhsat  = existingSofor ? (existingSofor.ruhsatImg||'') : '';
+  var prevSrc     = existingSofor ? (existingSofor.srcImg||'') : '';
   var ehliyetSrc = document.getElementById('ehliyetImg').src;
   var ruhsatSrc  = document.getElementById('ruhsatImg').src;
+  var srcSrc     = document.getElementById('srcBelgeImg').src;
   var ehliyetCleared = document.getElementById('ehliyetPreview').style.display === 'none';
   var ruhsatCleared  = document.getElementById('ruhsatPreview').style.display  === 'none';
+  var srcCleared     = document.getElementById('srcPreview').style.display      === 'none';
   var s = {
     id:id, first:first, last:last,
     phone: document.getElementById('soforTel').value.trim(),
@@ -7857,6 +7891,7 @@ function saveSofor() {
     not: document.getElementById('soforNot').value.trim(),
     ehliyetImg: ehliyetCleared ? '' : ((ehliyetSrc && ehliyetSrc.indexOf('data:') === 0) ? ehliyetSrc : prevEhliyet),
     ruhsatImg:  ruhsatCleared  ? '' : ((ruhsatSrc  && ruhsatSrc.indexOf('data:')  === 0) ? ruhsatSrc  : prevRuhsat),
+    srcImg:     srcCleared     ? '' : ((srcSrc      && srcSrc.indexOf('data:')      === 0) ? srcSrc      : prevSrc),
   };
   var idx = soforler.findIndex(function(x){return x.id===id;});
   if (idx >= 0) soforler[idx] = s; else soforler.unshift(s);
@@ -11126,6 +11161,44 @@ function openKasaModal(id){
 function closeKasaModal(e) {
   if (!e || e.target === document.getElementById('kasaModal'))
     document.getElementById('kasaModal').classList.remove('open'); document.body.style.overflow='';
+  clearKasaBelge();
+}
+
+function handleKasaBelge(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { showToast('Dosya 10MB\'dan büyük olamaz'); return; }
+  window._kasaBelgeFile = file;
+  if (file.type.startsWith('image/')) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('kasaBelgeImg').src = e.target.result;
+      document.getElementById('kasaBelgePreview').style.display = 'block';
+      document.getElementById('kasaBelgePdfName').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  } else {
+    document.getElementById('kasaBelgePreview').style.display = 'none';
+    document.getElementById('kasaBelgePdfName').style.display = 'block';
+    document.getElementById('kasaBelgePdfName').textContent = '📄 ' + file.name;
+  }
+}
+
+async function openKasaBelge(path) {
+  var res = await window_supabase.storage.from('belgeler').createSignedUrl(path, 3600);
+  if (res.data && res.data.signedUrl) {
+    window.open(res.data.signedUrl, '_blank');
+  } else {
+    showToast('Belge açılamadı');
+  }
+}
+
+function clearKasaBelge() {
+  window._kasaBelgeFile = null;
+  var fi = document.getElementById('kasaBelgeFile'); if (fi) fi.value = '';
+  var img = document.getElementById('kasaBelgeImg'); if (img) img.src = '';
+  var prev = document.getElementById('kasaBelgePreview'); if (prev) prev.style.display = 'none';
+  var pdf = document.getElementById('kasaBelgePdfName'); if (pdf) pdf.style.display = 'none';
 }
 
 function onKasaTurChange() {
@@ -11255,6 +11328,21 @@ function saveKasa(){
   var km=document.getElementById('kasaModal');if(km){km.classList.remove('open');km.style.display='none';}
   document.body.style.overflow='';renderKasa();
   if(!faturaLink) showToast(k.tur==='gelir'?'Gelir kaydedildi':'Gider kaydedildi');
+  // Belge varsa Supabase Storage'a yükle
+  var _belgeFile = window._kasaBelgeFile;
+  clearKasaBelge();
+  if (_belgeFile && window._gkCompanyId) {
+    (async function() {
+      var ext = _belgeFile.name.split('.').pop().toLowerCase();
+      var path = window._gkCompanyId + '/kasa/' + id + '/' + Date.now() + '.' + ext;
+      var res = await window_supabase.storage.from('belgeler').upload(path, _belgeFile);
+      if (!res.error) {
+        var rec = kasaKayitlar.find(function(x){return x.id===id;});
+        if (rec) { rec.belge = path; saveKasaData(); }
+        showToast('📎 Belge yüklendi');
+      }
+    })();
+  }
 }
 function deleteKasa(id) {
   if(!checkAdminOnly('Kasa kaydı silme')) return;
@@ -11666,7 +11754,7 @@ function renderKasa() {
       +'<td style="white-space:nowrap;color:var(--muted);font-size:11px">'+fmtDate(k.tarih)+'</td>'
       +'<td><div style="font-weight:500">'+k.aciklama+'</div>'
       +(k.not?'<div style="font-size:10px;color:var(--muted)">'+k.not+'</div>':'')
-      +(k.belge?'<div style="font-size:10px;color:var(--blue)">'+k.belge+'</div>':'')
+      +(k.belge?'<button onclick="openKasaBelge(\''+k.belge.replace(/'/g,"\\'")+'\')" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:11px;padding:0;margin-top:2px">📎 Belge</button>':'')
       +'</td>'
       +'<td><span style="font-size:11px;display:flex;align-items:center;gap:4px"><span class="kasa-kat-dot" style="background:'+c.color+'"></span>'+c.label+'</span></td>'
       +'<td>'+turHtml+'</td>'
