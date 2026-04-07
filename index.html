@@ -4512,7 +4512,15 @@ function switchTab(tab) {
   if (tab === 'isler')     { renderYearPills(); renderList(); showJobList(); }
   if (tab === 'fatura')    renderFaturalar();
   if (tab === 'takvim')    renderTakvim();
-  if (tab === 'kasa')      { renderKasa(); renderMusteriKarliligi(); renderArAging(); }
+  if (tab === 'kasa')      {
+    try { renderKasa(); renderMusteriKarliligi(); renderArAging(); }
+    catch(e) {
+      var _dbg=document.getElementById('debugBar');
+      if(!_dbg){_dbg=document.createElement('div');_dbg.id='debugBar';document.body.appendChild(_dbg);}
+      _dbg.style.cssText='position:fixed;top:0;left:0;right:0;background:#c0392b;color:#fff;padding:10px 14px;font-size:11px;z-index:99999;white-space:pre-wrap;font-family:monospace';
+      _dbg.textContent='Kasa Hata: '+e.message+'\n'+e.stack;
+    }
+  }
   if (tab === 'yedek')     { renderYedek(); setTimeout(function(){ if(typeof switchAyarlarTab==='function')switchAyarlarTab('sirket'); initAccent(); },30); }
   // mob-tabbar senkronizasyonu
   document.querySelectorAll('.mob-tab').forEach(function(b){ b.classList.remove('active'); });
@@ -6836,8 +6844,11 @@ function _initApp(){
     setTimeout(function(){ vadesiGecmisBildir(false); }, 4000);
     initSidebarTooltips();
     applyRoleRestrictions();
-    // PWA: Service Worker kaydı
+    // PWA: Service Worker — eski SW'leri temizle, yenisini kaydet
     if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs){
+        regs.forEach(function(r){ r.unregister(); });
+      });
       navigator.serviceWorker.register('./sw.js').then(function(reg) {
         reg.addEventListener('updatefound', function() {
           var yeni = reg.installing;
