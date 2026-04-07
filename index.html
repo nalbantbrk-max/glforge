@@ -1175,7 +1175,7 @@ input:not([type="email"]):not([type="number"]):not([type="date"]):not([type="tel
 
 @media(max-width:768px){
   .tab-wrap-outer{display:none!important}
-  #mobSecBar{display:flex!important}
+  #mobSecBar{display:none!important}
   .mob-tabbar{display:flex}
   .tab-panel.active{display:block!important;padding-bottom:80px!important}
   .form-panel{grid-template-columns:1fr!important}
@@ -1282,7 +1282,8 @@ input:not([type="email"]):not([type="number"]):not([type="date"]):not([type="tel
   #mobileStatsBar .hstat-label{font-size:7.5px;display:block;text-align:left}
   #mobileStatsBar .hstat-value{font-size:12px;margin-top:0;display:block}
   body{padding-top:56px!important}
-  #mobSecBar{top:60px!important}
+  /* #mobSecBar gizlendiği için top override'ına gerek yok */
+  #mobSecBar{top:60px!important;display:none!important}
 }
 /* Telefon yatayda ~769px+ olur → sidebar scroll düzelt */
 @media(min-width:769px) and (max-width:1024px) and (orientation:landscape){
@@ -1906,6 +1907,13 @@ body.sidebar-expanded .tab-panel.active {
   .forge-g-nal{width:20px;height:23px}
   .forge-sub{display:none}
 }
+
+/* Drawer scroll fix — iOS bounce ve overscroll engeli */
+#gkMenuDrawer, .mob-menu-drawer, #trendDrawer {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
 </style>
 <!-- Google Maps API anahtarı Ayarlar > API Anahtarları'ndan yüklenir -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1946,6 +1954,7 @@ body.sidebar-expanded .tab-panel.active {
     <button id="themeToggleBtn" class="hctl-pill" onclick="toggleTheme()" title="Tema Değiştir">
       <svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
     </button>
+    <div id="userAvatarBtn" onclick="toggleUserCard()" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#8B5CF6);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;border:2px solid rgba(255,255,255,0.15);letter-spacing:0.5px" title="Kullanıcı"></div>
   </div>
 </header>
 <!-- ═══════════════ FLOATING SIDEBAR ═══════════════ -->
@@ -3893,6 +3902,7 @@ body.sidebar-expanded .tab-panel.active {
     window._gkRole = _prof ? _prof.role : 'viewer';
     window._gkUserEmail = session.user.email || '';
     window._gkUserName = (_prof && _prof.full_name) ? _prof.full_name : session.user.email;
+    if(typeof updateUserAvatar==='function') updateUserAvatar();
     sessionStorage.setItem('gk_auth', '1');
     document.body.classList.add('gk-authed');
     var _lo = document.getElementById('loginOverlay');
@@ -3947,6 +3957,7 @@ body.sidebar-expanded .tab-panel.active {
       window._gkRole = _lProf ? _lProf.role : 'viewer';
       window._gkUserEmail = data.user.email || '';
       window._gkUserName = (_lProf && _lProf.full_name) ? _lProf.full_name : data.user.email;
+      if(typeof updateUserAvatar==='function') updateUserAvatar();
       sessionStorage.setItem('gk_auth', '1');
       document.body.classList.add('gk-authed');
       var ov = document.getElementById('loginOverlay');
@@ -4028,6 +4039,11 @@ async function loadAllFromSupabase() {
     if(typeof renderSoforler==='function') renderSoforler();
     if(typeof renderEtkinlikler==='function') renderEtkinlikler();
     if(typeof invalidateDashCache==='function') invalidateDashCache();
+    // Veri yüklendikten sonra dashboard ve header'ı yeniden çiz
+    if(typeof renderDashboard==='function') renderDashboard();
+    if(typeof updateHeader==='function') updateHeader();
+    if(typeof renderList==='function') renderList();
+    if(typeof updateUserAvatar==='function') updateUserAvatar();
   } catch(e) { console.warn('loadAllFromSupabase hatası:', e); }
 }
 
@@ -6178,6 +6194,25 @@ function showKpiDetail(type) {
     + '<button onclick="closeKpiDetail()" style="margin-top:16px;width:100%;background:var(--accent);border:none;color:var(--text);padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif">Kapat</button>';
   var o = document.getElementById('kpiDetailOverlay');
   if (o) { o.classList.add('open'); document.body.style.overflow = 'hidden'; }
+}
+
+// ── Kullanıcı avatar initials ──
+function updateUserAvatar() {
+  var btn = document.getElementById('userAvatarBtn');
+  if (!btn) return;
+  var name = window._gkUserName || window._gkUserEmail || '?';
+  var parts = name.trim().split(/\s+/);
+  var initials = parts.length >= 2
+    ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
+    : name.substring(0,2).toUpperCase();
+  btn.textContent = initials;
+  btn.title = name;
+}
+
+function toggleUserCard() {
+  var name = window._gkUserName || window._gkUserEmail || 'Kullanıcı';
+  var email = window._gkUserEmail || '';
+  showToast(name + (email ? ' · ' + email : ''));
 }
 
 function showToast(msg, dur) {
@@ -12299,7 +12334,8 @@ function openMobDrawer() {
   if (backdrop) { backdrop.style.display = 'block'; }
   if (drawer) { drawer.style.transform = 'translateY(0)'; }
   if (menuTab) { menuTab.classList.add('active'); }
-  document.body.style.overflow = 'hidden';
+  // Drawer scroll fix: body scroll'u engelleme, drawer kendi içinde scroll olsun
+  // document.body.style.overflow = 'hidden';
 }
 function closeMobDrawer() {
   _mobDrawerOpen = false;
@@ -12311,7 +12347,7 @@ function closeMobDrawer() {
     if (backdrop && !_mobDrawerOpen) { backdrop.style.display = 'none'; }
   }, 310);
   if (menuTab) { menuTab.classList.remove('active'); }
-  document.body.style.overflow = '';
+  // document.body.style.overflow = '';
 }
 function mobDrawerNav(tab) {
   closeMobDrawer();
