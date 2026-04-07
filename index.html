@@ -1187,10 +1187,10 @@ input:not([type="email"]):not([type="number"]):not([type="date"]):not([type="tel
   .kdv-row{flex-direction:column!important}
   .kdv-row input,.kdv-row select{width:100%!important}
   /* Modal'lar mobilde alt-sheet olarak aç */
-  .sf-modal-overlay{align-items:flex-end!important}
-  .sf-modal,.sf-modal-box{border-radius:20px 20px 0 0!important;max-height:92vh!important;width:100%!important;max-width:100%!important}
+  .sf-modal-overlay{align-items:flex-end!important;padding:0!important}
+  .sf-modal,.sf-modal-box{border-radius:20px 20px 0 0!important;max-height:85vh!important;width:100%!important;max-width:100%!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}
   #modal{align-items:flex-end!important;padding:0!important}
-  #modalBox{border-radius:20px 20px 0 0!important;max-height:92vh!important;width:100%!important;max-width:100%!important;padding:20px!important}
+  #modalBox{border-radius:20px 20px 0 0!important;max-height:92vh!important;width:100%!important;max-width:100%!important;padding:20px!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}
   .belge-modal-overlay,.etk-modal-overlay{align-items:flex-end!important;padding:0!important}
   .belge-modal-box,.etk-modal-box{border-radius:20px 20px 0 0!important;max-height:92vh!important;width:100%!important;max-width:100%!important;padding:20px!important}
   /* Eksik modaller — alt-sheet */
@@ -4169,7 +4169,7 @@ var _pendingTeklifId=null;
 var _dashCache=null,_dashCacheTime=0,_partnerPeriod='ay';
 var _dashPeriod=localStorage.getItem('goker_dash_period')||'ay';
 var _haftaCardMode = parseInt(localStorage.getItem('goker_hafta_card') || '0', 10); // 0=bu hafta, 1=geçen hafta, 2..11=önceki haftalar
-var _ayCardMode    = localStorage.getItem('goker_ay_card')    || new Date().toISOString().slice(0,7); // 'YYYY-MM' formatı
+var _ayCardMode    = (function(){ var v=localStorage.getItem('goker_ay_card'); return (v&&v.match(/^\d{4}-\d{2}$/))?v:new Date().toISOString().slice(0,7); })(); // 'YYYY-MM' formatı
 var _kpiData={};
 var _deletedJob=null,_undoTimer=null;
 var _saveCount=parseInt(localStorage.getItem('_goker_saves')||'0');
@@ -5316,6 +5316,9 @@ function toggleKanbanView() {
     // Kanban açıkken liste filtre satırını gizle
     var filterBarRow = document.querySelector('.filter-bar-row');
     if (filterBarRow) filterBarRow.style.display = 'none';
+    // Mobil kart listesini de gizle
+    var mobDiv = document.getElementById('jobListMobile');
+    if (mobDiv) mobDiv.style.display = 'none';
     renderKanban();
   } else {
     tableWrap.style.display = '';
@@ -5324,6 +5327,10 @@ function toggleKanbanView() {
     // Kanban kapanınca filtre satırını geri göster
     var filterBarRow = document.querySelector('.filter-bar-row');
     if (filterBarRow) filterBarRow.style.display = '';
+    // Mobil kart listesini geri göster (renderList içinde isMobile'a göre yönetilir)
+    var mobDiv = document.getElementById('jobListMobile');
+    if (mobDiv) mobDiv.style.display = '';
+    renderList();
   }
 }
 
@@ -5765,6 +5772,7 @@ function showDetail(id) {
 // ════════════════════════════════════════════════════
 
 function cariTahsilatAl(musteriAdi) {
+  if(!checkAdminRole('Tahsilat alma')) return;
   var acikIsler = jobs.filter(function(j) {
     return j.customerName === musteriAdi && !j.paid;
   });
@@ -11426,7 +11434,8 @@ function renderKasa() {
         +(v.gelir>0?'<span style="color:var(--green)">+'+fmt(v.gelir)+'</span>':'')
         +'</div></div>';
     }).join('');
-  document.getElementById('kasaCatGrid').innerHTML=catHtml||'<div style="padding:16px;color:var(--muted);font-size:12px;text-align:center">Veri yok</div>';
+  var _catEl=document.getElementById('kasaCatGrid');
+  if(_catEl) _catEl.innerHTML=catHtml||'<div style="padding:16px;color:var(--muted);font-size:12px;text-align:center">Veri yok</div>';
 
   // Islem tablosu
   var tbody=document.getElementById('kasaTableBody');
