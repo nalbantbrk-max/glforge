@@ -10766,7 +10766,7 @@ function buildFaturaHTML(j, faturaNo) {
     +'<td style="text-align:right;font-family:monospace">\u2014</td>'
     +'<td style="text-align:right;font-family:monospace">'+fmtTL(matrah)+'</td>'
     +'</tr>';
-  var logoSrc = sp.logo ? sp.logo : ('data:image/jpeg;base64,'+GOKER_LOGO_B64);
+  var logoSrc = sp.logo || '';
   var bankaAdi = sp.bankaAdi||'\u0130\u015e BANKASI';
   var ibanTl  = sp.ibanTl ||'TR75 0006 4000 0014 2171 5215 07';
   var ibanUsd = sp.ibanUsd||'TR57 0006 4000 0024 2170 5715 17';
@@ -10838,7 +10838,8 @@ function buildFaturaHTML(j, faturaNo) {
     + '<div class="fi">'+spAdres+'<br>Tel: '+spTel+'&nbsp;&nbsp;&nbsp;Web Sitesi: '+spWeb+'<br>E-Posta: '+spEmail+'<br>Vergi Dairesi: '+spVD+'&nbsp;&nbsp;&nbsp;VKN: '+spVKN+'<br>TİCARET SİCİL NO: '+spTSN+'&nbsp;&nbsp;&nbsp;MERSİS NO: '+spMersis+'</div>'
     + '</div>'
     + '<div class="fh-r">'
-    + '<img src="'+logoSrc+'" alt="Göker Lojistik">'
+    + (logoSrc ? '<img src="'+logoSrc+'" alt="Göker Lojistik" style="height:56px;width:auto;max-width:180px;object-fit:contain;display:block">'
+               : '<div style="text-align:right;line-height:1.15;padding-bottom:4px"><div style="font-family:Arial,sans-serif;font-size:22pt;font-weight:900;color:#cc0000;letter-spacing:3px">GÖKER</div><div style="font-size:7pt;color:#555;text-transform:uppercase;letter-spacing:1.5px;font-family:Arial,sans-serif">LOJİSTİK &amp; TAŞIMACILIK</div></div>')
     + '<span class="efb">e-FATURA</span>'
     + '</div>'
     + '</div>'
