@@ -1634,7 +1634,7 @@ async function showDashboard() {
 // ════════════════════════════════════════
 async function loadCompanyId() {
   try {
-    const { data: profile, error } = await supabase
+    const { data: profile, error } = await db
       .from('profiles')
       .select('customer_company_id')
       .eq('id', currentUser.id)
@@ -1658,7 +1658,7 @@ async function loadCompanyId() {
 
 async function loadPortalData() {
   try {
-    let query = supabase
+    let query = db
       .from('portal_data')
       .select('*')
       .order('tarih', { ascending: false });
