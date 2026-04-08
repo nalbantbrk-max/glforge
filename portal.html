@@ -1501,7 +1501,7 @@ tbody td {
 // ════════════════════════════════════════
 const SUPA_URL = 'https://kdadkibbhejfmusuysif.supabase.co';
 const SUPA_KEY = 'sb_publishable_NSRXsUahlc7xRh-ZtIJ4Zg_5d6DMuB2';
-const supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+const db = window.supabase.createClient(SUPA_URL, SUPA_KEY);
 
 // ════════════════════════════════════════
 // GLOBAL STATE
@@ -1515,14 +1515,14 @@ let companyId = null;
 // UYGULAMA BAŞLATMA
 // ════════════════════════════════════════
 (async function init() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await db.auth.getSession();
   if (session && session.user) {
     currentUser = session.user;
     await showDashboard();
   }
 
   // Auth durum değişikliklerini dinle
-  supabase.auth.onAuthStateChange(async (event, session) => {
+  db.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
       currentUser = session.user;
       await showDashboard();
@@ -1556,7 +1556,7 @@ async function handleLogin() {
   btnText.textContent = 'Giriş yapılıyor...';
 
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
 
     if (error) {
       throw error;
@@ -1597,7 +1597,7 @@ document.getElementById('login-form').addEventListener('keydown', function(e) {
 // ÇIKIŞ
 // ════════════════════════════════════════
 async function handleLogout() {
-  await supabase.auth.signOut();
+  await db.auth.signOut();
   allData = [];
   filteredData = [];
   currentUser = null;
