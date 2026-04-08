@@ -2397,7 +2397,13 @@ body.sidebar-expanded .tab-panel.active {
             <div id="customerNameAc" class="ac-dropdown"></div>
           </div>
         </div>
-        <div class="sf-two">
+        <div class="field" id="yetkiliWrap" style="display:none">
+          <label>Yetkili Kişi</label>
+          <select id="yetkiliSelect" onchange="yetkiliSecildi(this.value)" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif">
+            <option value="">— Yetkili seçin —</option>
+          </select>
+        </div>
+        <div class="sf-two" id="contactManuelWrap" style="display:none">
           <div class="field">
             <label>İlgili Kişi Adı</label>
             <div style="position:relative">
@@ -4969,6 +4975,10 @@ function clearForm(){
   var _jsv2=document.getElementById('jobStatusVal');if(_jsv2)_jsv2.value='yolda';
   var _ot=document.getElementById('odemeTipi');if(_ot)_ot.value='';
   setIsSahibi('ortak');
+  // Yetkili dropdown'ı sıfırla
+  var _yw = document.getElementById('yetkiliWrap');
+  if (_yw) _yw.style.display = 'none';
+  window._yetkiliKisiler = [];
 }
 
 function getStorageInfo() {
@@ -5220,9 +5230,42 @@ function dovizManuelKaydet() {
 }
 
 function invalidateDashCache(){_dashCache=null;_dashCacheTime=0;}
+
+// Yetkili kişi dropdown'ını doldur
+function dolduYetkiliDropdown(firmaAdi) {
+  var wrap = document.getElementById('yetkiliWrap');
+  var sel = document.getElementById('yetkiliSelect');
+  if (!wrap || !sel) return;
+  if (!firmaAdi) { wrap.style.display = 'none'; return; }
+  var m = (window.musteriDef || musteriler || []).find(function(x){ return x.firma === firmaAdi; });
+  var kisiler = (m && m.kisiler && m.kisiler.length) ? m.kisiler : [];
+  sel.innerHTML = '<option value="">— Yetkili seçin —</option>';
+  kisiler.forEach(function(k, i) {
+    var opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = (k.first || '') + ' ' + (k.last || '');
+    sel.appendChild(opt);
+  });
+  window._yetkiliKisiler = kisiler;
+  wrap.style.display = kisiler.length ? 'block' : 'none';
+}
+
+// Yetkili seçilince contactFirst/Last alanlarını doldur
+function yetkiliSecildi(idxStr) {
+  var kisiler = window._yetkiliKisiler || [];
+  var idx = parseInt(idxStr);
+  if (!isNaN(idx) && kisiler[idx]) {
+    var f = document.getElementById('contactFirst');
+    var l = document.getElementById('contactLast');
+    if (f) f.value = kisiler[idx].first || '';
+    if (l) l.value = kisiler[idx].last || '';
+  }
+}
+
 function saveJobs(){
   sbSet('jobs', jobs);
   invalidateDashCache();
+  syncPortalData();
   _saveCount++;localStorage.setItem('_goker_saves',_saveCount);
   if(_saveCount>0&&_saveCount%50===0){
     var ex=document.getElementById('_yedekBar');if(ex)ex.remove();
@@ -5233,6 +5276,54 @@ function saveJobs(){
       +'<button onclick="this.parentElement.remove()" style="background:none;border:none;color:#64748B;font-size:18px;cursor:pointer">x</button>';
     document.body.appendChild(d);
     setTimeout(function(){var b=document.getElementById('_yedekBar');if(b)b.remove();},7000);
+  }
+}
+
+// ── PORTAL SYNC ──
+async function syncPortalData() {
+  if (!window._gkCompanyId || !window_supabase) return;
+  try {
+    // Müşteri firma listesini çek (portal'a kayıtlı olanlar)
+    var { data: companies } = await window_supabase
+      .from('customer_companies')
+      .select('id,name')
+      .eq('owner_company_id', window._gkCompanyId)
+      .eq('portal_enabled', true);
+    if (!companies || !companies.length) return;
+
+    // Her iş kaydını ilgili customer_company ile eşleştir
+    var upsertRows = [];
+    jobs.forEach(function(j) {
+      var match = companies.find(function(c) {
+        return c.name && j.customerName &&
+          c.name.toUpperCase().trim() === j.customerName.toUpperCase().trim();
+      });
+      if (!match) return;
+      upsertRows.push({
+        owner_company_id: window._gkCompanyId,
+        customer_company_id: match.id,
+        job_id: String(j.id),
+        tarih: j.date || null,
+        nereden: j.origin || null,
+        nereye: j.destination || null,
+        guzergah: (j.origin && j.destination) ? (j.origin + ' → ' + j.destination) : null,
+        durum: j.jobStatus || 'bekliyor',
+        plaka: j.plate || null,
+        sofor_ad: j.driverFirst ? (j.driverFirst + ' ' + (j.driverLast || '')).trim() : null,
+        yuk_tipi: j.yukTipi || j.cargoType || null,
+        kg: j.cargoWeight ? parseFloat(j.cargoWeight) : null,
+        fatura_tutar: j.sellTotal ? parseFloat(j.sellTotal) : null,
+        fatura_no: j.fisNo || null,
+        odeme_durumu: j.paid ? 'odendi' : 'bekliyor',
+        notlar: j.notes || null,
+        updated_at: new Date().toISOString()
+      });
+    });
+
+    if (!upsertRows.length) return;
+    await window_supabase.from('portal_data').upsert(upsertRows, { onConflict: 'job_id' });
+  } catch(e) {
+    // Sessizce geç — portal sync kritik değil
   }
 }
 
@@ -5320,6 +5411,19 @@ function editJob(id){
   var ot=document.getElementById('odemeTipi');if(ot)ot.value=j.odemeTipi||'';
   setIsSahibi(j.isSahibi||'ortak');
   var fn2=document.getElementById('fisNo');if(fn2)fn2.value=j.fisNo||'';
+  // Yetkili kişi dropdown'ını doldur ve kaydedilmiş yetkiliyi seç
+  dolduYetkiliDropdown(j.customerName);
+  setTimeout(function() {
+    var sel = document.getElementById('yetkiliSelect');
+    var kisiler = window._yetkiliKisiler || [];
+    if (sel && j.contactFirst) {
+      for (var i = 0; i < kisiler.length; i++) {
+        if (kisiler[i].first === j.contactFirst && kisiler[i].last === j.contactLast) {
+          sel.value = i; break;
+        }
+      }
+    }
+  }, 50);
   calcProfit&&calcProfit();window.scrollTo(0,0);
 }
 function teklifToJob(id){
@@ -10353,6 +10457,8 @@ function acSelectSofor(id) {
 function acSelectMusteri(id) {
   var m = musteriDef.find(function(x){return x.id===id;}); if (!m) return;
   document.getElementById('customerName').value = m.firma;
+  // Yetkili kişi dropdown'ını doldur
+  dolduYetkiliDropdown(m.firma);
   // İlk kişiyi otomatik doldur
   var k0 = (m.kisiler && m.kisiler[0]) || {};
   document.getElementById('contactFirst').value = k0.first || '';
