@@ -1199,6 +1199,9 @@ input:not([type="email"]):not([type="number"]):not([type="date"]):not([type="tel
     align-items:center!important;justify-content:center!important;
     padding:max(env(safe-area-inset-top,0px),20px) 12px 80px!important;
     box-sizing:border-box!important;
+    overflow-y:hidden!important;
+    outline:none!important;-webkit-tap-highlight-color:transparent!important;
+    touch-action:none!important;
   }
   .sf-modal,.sf-modal-box,#modalBox,
   .belge-modal-box,.etk-modal-box,
@@ -1209,6 +1212,7 @@ input:not([type="email"]):not([type="number"]):not([type="date"]):not([type="tel
     overflow-y:auto!important;overscroll-behavior:contain!important;
     -webkit-overflow-scrolling:touch!important;
     padding:20px!important;
+    outline:none!important;-webkit-tap-highlight-color:transparent!important;
   }
   /* Modal başlığı sticky — X butonu scroll sırasında kaybolmaz */
   .sf-modal-title{
