@@ -1442,8 +1442,7 @@ tbody td {
               <th>Durum</th>
               <th>Plaka</th>
               <th>Şoför</th>
-              <th>Yük Tipi</th>
-              <th>KG</th>
+              <th>Yük Cinsi</th>
               <th>Fatura Tutarı</th>
               <th>Fatura No</th>
               <th>Ödeme</th>
@@ -1951,8 +1950,7 @@ function renderTable() {
         <td>${durumBadge}</td>
         <td class="td-mono">${esc(row.plaka || '—')}</td>
         <td>${esc(row.sofor_ad || '—')}</td>
-        <td>${esc(row.yuk_tipi || '—')}</td>
-        <td class="td-mono">${row.kg ? Number(row.kg).toLocaleString('tr-TR') + ' kg' : '—'}</td>
+        <td>${row.yuk_tipi && row.yuk_tipi.toLowerCase() !== 'komple' && row.yuk_tipi.toLowerCase() !== 'parsiyel' ? esc(row.yuk_tipi) : '—'}</td>
         <td class="td-mono td-bold" style="color:var(--text)">${row.fatura_tutar ? formatTL(parseFloat(row.fatura_tutar)) : '—'}</td>
         <td class="td-mono">${esc(row.fatura_no || '—')}</td>
         <td>${odemeBadge}</td>
@@ -2011,15 +2009,10 @@ function renderMobileCards() {
             <span class="m-card-field-label">Ödeme</span>
             <span class="m-card-field-value">${odemeBadge}</span>
           </div>
-          ${row.yuk_tipi ? `
+          ${row.yuk_tipi && row.yuk_tipi.toLowerCase() !== 'komple' && row.yuk_tipi.toLowerCase() !== 'parsiyel' ? `
           <div class="m-card-field">
-            <span class="m-card-field-label">Yük</span>
+            <span class="m-card-field-label">Yük Cinsi</span>
             <span class="m-card-field-value">${esc(row.yuk_tipi)}</span>
-          </div>` : ''}
-          ${row.kg ? `
-          <div class="m-card-field">
-            <span class="m-card-field-label">Ağırlık</span>
-            <span class="m-card-field-value" style="font-family:var(--font-mono)">${Number(row.kg).toLocaleString('tr-TR')} kg</span>
           </div>` : ''}
         </div>
         ${docButtons ? `<div class="m-card-docs">${docButtons}</div>` : ''}
