@@ -565,6 +565,58 @@ html, body {
 .chart-card-title { font-size: 11px; font-weight: 700; color: var(--text2); letter-spacing: .8px; text-transform: uppercase; margin-bottom: 8px; display:flex; align-items:center; gap:6px; }
 .chart-card-title::before { content:''; display:inline-block; width:3px; height:12px; border-radius:2px; background:linear-gradient(180deg,#818cf8,#6366f1); }
 
+/* ── Yeni KPI Stiller ── */
+@keyframes kpi-sefer-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(99,102,241,.0), 0 2px 12px rgba(0,0,0,.06); }
+  50%      { box-shadow: 0 0 0 8px rgba(99,102,241,.08), 0 2px 20px rgba(99,102,241,.15); }
+}
+.kpi-card-v2 {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: box-shadow .2s, transform .2s;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card-v2:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+.kpi-card-v2::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 16px 16px 0 0;
+}
+.kpi-card-v2.kv-indigo::before { background: linear-gradient(90deg,#6366f1,#818cf8); }
+.kpi-card-v2.kv-emerald::before { background: linear-gradient(90deg,#10b981,#34d399); }
+.kpi-card-v2.kv-amber::before { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+.kpi-card-v2.kv-slate::before { background: linear-gradient(90deg,#475569,#64748b); }
+.kpi-card-v2.kv-active { animation: kpi-sefer-pulse 2.8s ease-in-out infinite; }
+.kpi-v2-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.kpi-v2-value { font-family: var(--font-mono); font-size: 32px; font-weight: 800; line-height: 1; margin: 4px 0 2px; }
+.kpi-v2-value.kv-indigo { color: #818cf8; }
+.kpi-v2-value.kv-emerald { color: #34d399; }
+.kpi-v2-value.kv-amber { color: #f59e0b; }
+.kpi-v2-value.kv-slate { color: var(--text); }
+.kpi-v2-sub { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.kpi-trend-up   { color: #34d399; font-weight: 700; font-size: 11px; }
+.kpi-trend-down { color: #f87171; font-weight: 700; font-size: 11px; }
+.kpi-trend-flat { color: var(--muted); font-weight: 700; font-size: 11px; }
+/* Tedarik zinciri card */
+.tedarik-col { display: flex; flex-direction: column; gap: 6px; }
+.tedarik-col-title { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 2px; }
+.tedarik-item { display: flex; align-items: center; gap: 8px; }
+.tedarik-bar-wrap { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.tedarik-bar { height: 100%; border-radius: 3px; transition: width .6s ease; }
+.tedarik-name { font-size: 11px; font-weight: 500; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
+.tedarik-count { font-size: 10px; font-family: var(--font-mono); color: var(--muted); flex-shrink: 0; }
+/* Ödeme progress */
+.odeme-progress-wrap { background: var(--border); border-radius: 6px; height: 8px; overflow: hidden; margin: 10px 0 6px; }
+.odeme-progress-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg,#10b981,#34d399); transition: width .8s ease; }
+
 /* ── Araç çubuğu ── */
 .toolbar {
   display: flex;
@@ -1272,82 +1324,45 @@ tbody td {
 
     <!-- KPI Kartları -->
     <div class="cari-band" id="kpi-band">
-      <div class="kpi-card kpi-accent">
-        <div class="kpi-icon icon-accent">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
-            <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-          </svg>
-        </div>
-        <div class="kpi-label">Toplam Taşıma</div>
-        <div class="kpi-value val-accent" id="kpi-total">—</div>
-        <div class="kpi-sub" id="kpi-total-sub">Tüm zamanlar</div>
+
+      <!-- 1. Aktif Sefer — nefes alan -->
+      <div class="kpi-card-v2 kv-indigo kv-active" id="kpi-aktif-card">
+        <div class="kpi-v2-label">🚛 Aktif Sefer</div>
+        <div class="kpi-v2-value kv-indigo" id="kpi-v2-aktif">—</div>
+        <div class="kpi-v2-sub" id="kpi-v2-aktif-sub">Şu an yolda</div>
       </div>
 
-      <div class="kpi-card kpi-blue">
-        <div class="kpi-icon icon-blue">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
+      <!-- 2. Bu Ay -->
+      <div class="kpi-card-v2 kv-emerald">
+        <div class="kpi-v2-label">📦 Bu Ay</div>
+        <div class="kpi-v2-value kv-emerald" id="kpi-v2-buay">—</div>
+        <div class="kpi-v2-sub">
+          <span id="kpi-v2-buay-trend"></span>
+          <span id="kpi-v2-buay-sub">taşıma</span>
         </div>
-        <div class="kpi-label">Aktif Taşıma</div>
-        <div class="kpi-value val-blue" id="kpi-active">—</div>
-        <div class="kpi-sub">Yolda / Yüklendi</div>
       </div>
 
-      <div class="kpi-card kpi-red">
-        <div class="kpi-icon icon-red">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="1" x2="12" y2="23"/>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-        </div>
-        <div class="kpi-label">Toplam Borç</div>
-        <div class="kpi-value val-red" id="kpi-debt">—</div>
-        <div class="kpi-sub">Ödenmemiş faturalar</div>
+      <!-- 3. Toplam Tamamlanan -->
+      <div class="kpi-card-v2 kv-slate">
+        <div class="kpi-v2-label">✅ Tamamlanan</div>
+        <div class="kpi-v2-value kv-slate" id="kpi-v2-tamamlanan">—</div>
+        <div class="kpi-v2-sub" id="kpi-v2-birlikte">başarılı teslimat</div>
       </div>
 
-      <div class="kpi-card kpi-green">
-        <div class="kpi-icon icon-green">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0e9e62" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </div>
-        <div class="kpi-label">Ödenen</div>
-        <div class="kpi-value val-green" id="kpi-paid">—</div>
-        <div class="kpi-sub">Tahsilat toplamı</div>
+      <!-- 4. Kalan Bakiye -->
+      <div class="kpi-card-v2 kv-amber">
+        <div class="kpi-v2-label">💳 Kalan Bakiye</div>
+        <div class="kpi-v2-value kv-amber" id="kpi-v2-bakiye" style="font-size:22px;margin-top:6px">—</div>
+        <div class="kpi-v2-sub" id="kpi-v2-bakiye-sub">ödenmemiş</div>
       </div>
-    </div>
 
-    <!-- Cari Özet -->
-    <div class="cari-ozet-card" id="cari-ozet">
-      <div>
-        <div class="cari-ozet-title">Toplam Borç</div>
-        <div class="cari-ozet-val" style="color:var(--red)" id="cari-toplam-borc">—</div>
-      </div>
-      <div class="cari-ozet-sep"></div>
-      <div>
-        <div class="cari-ozet-title">Ödenen</div>
-        <div class="cari-ozet-val" style="color:var(--green)" id="cari-odenen">—</div>
-      </div>
-      <div class="cari-ozet-sep"></div>
-      <div>
-        <div class="cari-ozet-title">Kalan Bakiye</div>
-        <div class="cari-ozet-val" style="color:var(--accent)" id="cari-kalan">—</div>
-      </div>
-      <div class="cari-ozet-sep"></div>
-      <div>
-        <div class="cari-ozet-title">Toplam Fatura</div>
-        <div class="cari-ozet-val" style="color:var(--text)" id="cari-toplam-fatura">—</div>
-      </div>
     </div>
 
     <!-- Charts -->
     <div class="charts-section" id="chartsSection" style="display:none">
       <div class="chart-grid">
         <div class="chart-card">
-          <div class="chart-card-title">Ödeme Dengesi</div>
+          <div class="chart-card-title">Ödeme Özeti</div>
           <div id="chartOdeme"></div>
         </div>
         <div class="chart-card">
@@ -1355,7 +1370,7 @@ tbody td {
           <div id="chartTrend"></div>
         </div>
         <div class="chart-card">
-          <div class="chart-card-title">Yükleyici / Alıcı Firma</div>
+          <div class="chart-card-title">Tedarik Zinciri</div>
           <div id="chartFirma"></div>
         </div>
       </div>
@@ -1887,39 +1902,85 @@ function renderAll() {
 }
 
 function renderKPI() {
-  const total  = allData.length;
-  const active = allData.filter(r => ['yüklendi','yuklendi','yolda'].includes((r.durum||'').toLowerCase())).length;
+  // 1. Aktif Sefer
+  var active = allData.filter(function(r) {
+    return ['yüklendi','yuklendi','yolda'].includes((r.durum||'').toLowerCase());
+  }).length;
+  var aktifEl = document.getElementById('kpi-v2-aktif');
+  var aktifSubEl = document.getElementById('kpi-v2-aktif-sub');
+  var aktifCard = document.getElementById('kpi-aktif-card');
+  if (aktifEl) aktifEl.textContent = active;
+  if (aktifSubEl) aktifSubEl.textContent = active > 0 ? 'sefer aktif, yolda' : 'şu an aktif sefer yok';
+  // Aktif yoksa pulse animasyonu durdur
+  if (aktifCard) {
+    if (active > 0) aktifCard.classList.add('kv-active');
+    else aktifCard.classList.remove('kv-active');
+  }
 
-  let totalDebt = 0, totalPaid = 0;
-  allData.forEach(r => {
-    const tutar = parseFloat(r.fatura_tutar) || 0;
-    if ((r.odeme_durumu||'').toLowerCase() === 'odendi') {
-      totalPaid += tutar;
+  // 2. Bu Ay + MoM trend
+  var now = new Date();
+  var curYM = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  var prevDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  var prevYM = prevDate.getFullYear() + '-' + String(prevDate.getMonth()+1).padStart(2,'0');
+  var curCount  = allData.filter(function(r){ return r.tarih && r.tarih.startsWith(curYM); }).length;
+  var prevCount = allData.filter(function(r){ return r.tarih && r.tarih.startsWith(prevYM); }).length;
+  var momPct = prevCount > 0 ? Math.round((curCount - prevCount) / prevCount * 100) : (curCount > 0 ? 100 : 0);
+  var buayEl = document.getElementById('kpi-v2-buay');
+  var trendEl = document.getElementById('kpi-v2-buay-trend');
+  if (buayEl) buayEl.textContent = curCount;
+  if (trendEl) {
+    if (prevCount === 0 && curCount === 0) {
+      trendEl.textContent = '';
+    } else if (momPct > 0) {
+      trendEl.className = 'kpi-trend-up';
+      trendEl.textContent = '▲ %' + momPct + ' geçen aya göre';
+    } else if (momPct < 0) {
+      trendEl.className = 'kpi-trend-down';
+      trendEl.textContent = '▼ %' + Math.abs(momPct) + ' geçen aya göre';
     } else {
-      totalDebt += tutar;
+      trendEl.className = 'kpi-trend-flat';
+      trendEl.textContent = '— geçen ayla aynı';
     }
-  });
+  }
 
-  document.getElementById('kpi-total').textContent  = total;
-  document.getElementById('kpi-total-sub').textContent = `${filteredData.length} filtreli gösteriliyor`;
-  document.getElementById('kpi-active').textContent = active;
-  document.getElementById('kpi-debt').textContent   = formatTL(totalDebt);
-  document.getElementById('kpi-paid').textContent   = formatTL(totalPaid);
-}
+  // 3. Toplam Tamamlanan + birlikte kaç ay
+  var completed = allData.filter(function(r) {
+    var d = (r.durum||'').toLowerCase();
+    var lc = (r.lifecycle_status||'').toLowerCase();
+    return d.includes('tamaml') || lc === 'completed';
+  }).length;
+  var tamamEl = document.getElementById('kpi-v2-tamamlanan');
+  var birlikteEl = document.getElementById('kpi-v2-birlikte');
+  if (tamamEl) tamamEl.textContent = completed;
+  if (birlikteEl) {
+    var dates = allData.map(function(r){ return r.tarih; }).filter(Boolean).sort();
+    if (dates.length) {
+      var months = Math.max(1, Math.round((new Date() - new Date(dates[0])) / (1000*60*60*24*30.5)));
+      birlikteEl.textContent = months + ' aydır birlikte · başarılı teslimat';
+    } else {
+      birlikteEl.textContent = 'başarılı teslimat';
+    }
+  }
 
-function renderCariOzet() {
-  let totalFatura = 0, odenen = 0;
-  allData.forEach(r => {
-    const t = parseFloat(r.fatura_tutar) || 0;
+  // 4. Kalan Bakiye
+  var totalFatura = 0, odenen = 0;
+  allData.forEach(function(r) {
+    var t = parseFloat(r.fatura_net) || parseFloat(r.fatura_tutar) || 0;
     totalFatura += t;
     if ((r.odeme_durumu||'').toLowerCase() === 'odendi') odenen += t;
   });
-  const kalan = totalFatura - odenen;
+  var kalan = totalFatura - odenen;
+  var bakiyeEl = document.getElementById('kpi-v2-bakiye');
+  var bakiyeSubEl = document.getElementById('kpi-v2-bakiye-sub');
+  if (bakiyeEl) bakiyeEl.textContent = formatTL(kalan);
+  if (bakiyeSubEl) {
+    var bekleyenCount = allData.filter(function(r){ return (r.odeme_durumu||'').toLowerCase() !== 'odendi'; }).length;
+    bakiyeSubEl.textContent = bekleyenCount + ' fatura bekliyor';
+  }
+}
 
-  document.getElementById('cari-toplam-borc').textContent  = formatTL(totalFatura - odenen);
-  document.getElementById('cari-odenen').textContent       = formatTL(odenen);
-  document.getElementById('cari-kalan').textContent        = formatTL(kalan);
-  document.getElementById('cari-toplam-fatura').textContent = formatTL(totalFatura);
+function renderCariOzet() {
+  // cari-ozet-card kaldırıldı — renderKPI içinde kalan bakiye gösteriliyor
 }
 
 function renderTable() {
@@ -2062,58 +2123,38 @@ function renderCharts() {
     dynamicAnimation: { enabled: true, speed: 400 }
   };
 
-  // ── 1. ÖDEME DENGESİ — Donut Glow ──
-  var odendi   = allData.filter(function(r){ return r.odeme_durumu === 'odendi'; }).length;
-  var bekliyor = allData.filter(function(r){ return r.odeme_durumu !== 'odendi'; }).length;
-  var total    = odendi + bekliyor;
-  var pct      = total > 0 ? Math.round(odendi / total * 100) : 0;
-  if (_charts.odeme) { _charts.odeme.destroy(); _charts.odeme = null; }
-  _charts.odeme = new ApexCharts(document.getElementById('chartOdeme'), {
-    chart: {
-      type: 'donut', height: 230, background: cardBg,
-      toolbar: { show: false },
-      fontFamily: "'DM Sans', sans-serif",
-      animations: baseAnim,
-      dropShadow: { enabled: true, top: 0, left: 0, blur: 14, color: ['#22c55e','#f59e0b'], opacity: 0.3 }
-    },
-    series: [odendi, bekliyor],
-    labels: ['Tahsil Edildi', 'Bekliyor'],
-    colors: ['#22c55e', '#f59e0b'],
-    fill: {
-      type: 'gradient',
-      gradient: { shade: 'dark', type: 'vertical', gradientToColors: ['#16a34a','#d97706'], stops: [0,100] }
-    },
-    stroke: { width: 0 },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: '70%',
-          labels: {
-            show: true,
-            name: { show: true, fontSize: '11px', color: textColor, offsetY: 18 },
-            value: { show: true, fontSize: '26px', fontWeight: 800, color: text2Color, offsetY: -12,
-              formatter: function() { return pct + '%'; }
-            },
-            total: { show: true, label: 'Tahsil', fontSize: '11px', color: textColor,
-              formatter: function() { return pct + '%'; }
-            }
-          }
-        }
-      }
-    },
-    legend: {
-      position: 'bottom', fontSize: '12px', fontWeight: 600,
-      labels: { colors: textColor },
-      markers: { width: 8, height: 8, radius: 4 }
-    },
-    dataLabels: { enabled: false },
-    tooltip: {
-      theme: tooltipTheme,
-      style: { fontSize: '12px', fontFamily: "'DM Sans', sans-serif" },
-      y: { formatter: function(v) { return v + ' iş'; } }
-    }
+  // ── 1. ÖDEME ÖZETİ — Progress bar (custom HTML, ApexCharts yok) ──
+  if (_charts.odeme) { try { _charts.odeme.destroy(); } catch(e){} _charts.odeme = null; }
+  var odemeEl = document.getElementById('chartOdeme');
+  var totalNet2 = 0, paidNet2 = 0;
+  allData.forEach(function(r) {
+    var t = parseFloat(r.fatura_net) || parseFloat(r.fatura_tutar) || 0;
+    totalNet2 += t;
+    if ((r.odeme_durumu||'').toLowerCase() === 'odendi') paidNet2 += t;
   });
-  _charts.odeme.render();
+  var odemePct = totalNet2 > 0 ? Math.round(paidNet2 / totalNet2 * 100) : 0;
+  var bekleyenTutar = totalNet2 - paidNet2;
+  odemeEl.innerHTML = [
+    '<div style="padding:4px 0 0">',
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">',
+    '  <span style="font-size:28px;font-weight:800;font-family:var(--font-mono);color:#34d399">' + odemePct + '%</span>',
+    '  <span style="font-size:11px;color:' + textColor + '">Tahsil Edildi</span>',
+    '</div>',
+    '<div class="odeme-progress-wrap">',
+    '  <div class="odeme-progress-fill" style="width:' + odemePct + '%"></div>',
+    '</div>',
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">',
+    '  <div style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:10px;padding:10px 12px">',
+    '    <div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#34d399;margin-bottom:4px">TAHSİL EDİLDİ</div>',
+    '    <div style="font-size:14px;font-weight:700;font-family:var(--font-mono);color:' + text2Color + '">' + formatTL(paidNet2) + '</div>',
+    '  </div>',
+    '  <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:10px 12px">',
+    '    <div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#f59e0b;margin-bottom:4px">BEKLİYOR</div>',
+    '    <div style="font-size:14px;font-weight:700;font-family:var(--font-mono);color:' + text2Color + '">' + formatTL(bekleyenTutar) + '</div>',
+    '  </div>',
+    '</div>',
+    '</div>'
+  ].join('');
 
   // ── 2. AYLIK TAŞIMA TRENDİ — Area Glow ──
   var monthMap = {};
@@ -2177,72 +2218,44 @@ function renderCharts() {
   });
   _charts.trend.render();
 
-  // ── 3. YÜKLEYİCİ / ALICI FİRMA — Horizontal Bar Glow ──
-  var yukMap = {}, alMap = {};
-  allData.forEach(function(r) {
-    if (r.yukleyici_firma) yukMap[r.yukleyici_firma] = (yukMap[r.yukleyici_firma]||0)+1;
-    if (r.alici_firma)    alMap[r.alici_firma]    = (alMap[r.alici_firma]||0)+1;
-  });
-  var topYuk = Object.keys(yukMap).sort(function(a,b){ return yukMap[b]-yukMap[a]; }).slice(0,5);
-  var topAl  = Object.keys(alMap).sort(function(a,b){ return alMap[b]-alMap[a]; }).slice(0,5);
-  var firmaLabels = topYuk.concat(topAl.filter(function(f){ return topYuk.indexOf(f)<0; })).slice(0,6);
+  // ── 3. TEDARİK ZİNCİRİ GÖRÜNÜMÜ — custom HTML ──
   var firmaEl = document.getElementById('chartFirma');
-  if (_charts.firma) { _charts.firma.destroy(); _charts.firma = null; }
-  if (!firmaLabels.length) {
-    firmaEl.innerHTML = '<div style="height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px"><div style="font-size:28px;opacity:.3">📦</div><div style="color:'+textColor+';font-size:12px;opacity:.5">Henüz firma verisi yok</div></div>';
-    return;
-  }
-  _charts.firma = new ApexCharts(firmaEl, {
-    chart: {
-      type: 'bar', height: 230, background: cardBg,
-      toolbar: { show: false },
-      fontFamily: "'DM Sans', sans-serif",
-      animations: baseAnim,
-      dropShadow: { enabled: true, top: 2, left: 0, blur: 10, color: ['#818cf8','#34d399'], opacity: 0.25 }
-    },
-    plotOptions: {
-      bar: { horizontal: true, borderRadius: 6, borderRadiusApplication: 'end', barHeight: '50%' }
-    },
-    series: [
-      { name: 'Yükleyici', data: firmaLabels.map(function(f){ return yukMap[f]||0; }) },
-      { name: 'Alıcı',    data: firmaLabels.map(function(f){ return alMap[f]||0; }) }
-    ],
-    xaxis: {
-      categories: firmaLabels,
-      axisBorder: { show: false }, axisTicks: { show: false },
-      labels: { style: { colors: textColor, fontSize: '10px' }, formatter: function(v){ return Math.round(v); } }
-    },
-    yaxis: {
-      labels: { style: { colors: text2Color, fontSize: '10px', fontWeight: 600 }, maxWidth: 120 }
-    },
-    colors: ['#818cf8', '#34d399'],
-    fill: {
-      type: 'gradient',
-      gradient: {
-        shade: 'dark', type: 'horizontal',
-        gradientToColors: ['#6366f1','#10b981'],
-        stops: [0, 100]
-      }
-    },
-    grid: {
-      borderColor: gridColor, strokeDashArray: 4,
-      xaxis: { lines: { show: true } },
-      yaxis: { lines: { show: false } }
-    },
-    dataLabels: { enabled: false },
-    legend: {
-      position: 'top', fontSize: '11px', fontWeight: 600,
-      labels: { colors: textColor },
-      markers: { width: 8, height: 8, radius: 4 }
-    },
-    tooltip: {
-      theme: tooltipTheme,
-      style: { fontSize: '12px', fontFamily: "'DM Sans', sans-serif" },
-      shared: true, intersect: false,
-      y: { formatter: function(v){ return v + ' iş'; } }
-    }
+  if (_charts.firma) { try { _charts.firma.destroy(); } catch(e){} _charts.firma = null; }
+  var yukMap2 = {}, alMap2 = {};
+  allData.forEach(function(r) {
+    if (r.yukleyici_firma) yukMap2[r.yukleyici_firma] = (yukMap2[r.yukleyici_firma]||0)+1;
+    if (r.alici_firma)    alMap2[r.alici_firma]    = (alMap2[r.alici_firma]||0)+1;
   });
-  _charts.firma.render();
+  var topYuk2 = Object.keys(yukMap2).sort(function(a,b){ return yukMap2[b]-yukMap2[a]; }).slice(0,4);
+  var topAl2  = Object.keys(alMap2).sort(function(a,b){ return alMap2[b]-alMap2[a]; }).slice(0,4);
+  var maxYuk = topYuk2.length ? yukMap2[topYuk2[0]] : 1;
+  var maxAl  = topAl2.length  ? alMap2[topAl2[0]]  : 1;
+  function tedarikRows(items, map, max, color) {
+    if (!items.length) return '<div style="font-size:11px;color:' + textColor + ';opacity:.5;padding:8px 0">Veri yok</div>';
+    return items.map(function(name) {
+      var cnt = map[name];
+      var pct = Math.round(cnt/max*100);
+      return '<div class="tedarik-item">' +
+        '<span class="tedarik-name" title="' + name + '">' + name + '</span>' +
+        '<div class="tedarik-bar-wrap"><div class="tedarik-bar" style="width:' + pct + '%;background:' + color + '"></div></div>' +
+        '<span class="tedarik-count">' + cnt + '</span>' +
+        '</div>';
+    }).join('');
+  }
+  var yukCount = Object.keys(yukMap2).length;
+  var alCount  = Object.keys(alMap2).length;
+  firmaEl.innerHTML = [
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:2px 0">',
+    '  <div class="tedarik-col">',
+    '    <div class="tedarik-col-title" style="color:#818cf8">🔵 Yükleme (' + yukCount + ' nokta)</div>',
+    tedarikRows(topYuk2, yukMap2, maxYuk, '#818cf8'),
+    '  </div>',
+    '  <div class="tedarik-col">',
+    '    <div class="tedarik-col-title" style="color:#34d399">🟢 Teslim (' + alCount + ' nokta)</div>',
+    tedarikRows(topAl2, alMap2, maxAl, '#34d399'),
+    '  </div>',
+    '</div>'
+  ].join('');
 }
 
 // ════════════════════════════════════════
