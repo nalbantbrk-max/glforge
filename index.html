@@ -2351,6 +2351,7 @@ body.sidebar-expanded .tab-panel.active {
                 <button class="filter-btn" onclick="setFilter('loss')" id="filter-loss">Kayıp</button>
                 <button class="filter-btn" onclick="setFilter('driverpending')" id="filter-driverpending">Şoför Bekleyen</button>
                 <button class="filter-btn" onclick="setFilter('ileri')" id="filter-ileri" style="border-color:rgba(37,99,235,.3);color:var(--blue)">📅 İleri Tarihli</button>
+                <button class="filter-btn" onclick="setFilter('draft')" id="filter-draft" style="border-color:rgba(245,158,11,.3);color:#F59E0B">📋 Taslaklar</button>
               </div>
               <div class="fdp-sep"></div>
               <div class="fdp-group">
@@ -2404,6 +2405,8 @@ body.sidebar-expanded .tab-panel.active {
   <div style="padding:12px 16px 0;display:flex;align-items:center;gap:10px">
     <button onclick="showJobList()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">← Geri</button>
     <div style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;letter-spacing:0;color:var(--text)" id="jobFormTitle">Yeni İş Kaydı</div>
+    <button type="button" id="taslakToggleBtn" onclick="toggleTaslak()" style="background:var(--surface2);border:1.5px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-left:4px">📋 Taslak</button>
+    <input type="hidden" id="lifecycleStatusVal" value="planned">
   </div>
 <div class="form-col">
       <div class="panel-title">Yeni İş Kaydı</div>
@@ -2532,18 +2535,6 @@ body.sidebar-expanded .tab-panel.active {
           <button class="js-step" onclick="setJobStatusForm('teslim')">Teslim</button>
         </div>
         <input type="hidden" id="jobStatusVal" value="yolda">
-      </div>
-
-      <div class="sf-form-section">
-        <div class="section-label">İş Aşaması</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" class="lc-step draft" id="lc-draft" onclick="setLifecycleStatus('draft')">🔘 Taslak</button>
-          <button type="button" class="lc-step planned lc-active" id="lc-planned" onclick="setLifecycleStatus('planned')">🔵 Planlandı</button>
-          <button type="button" class="lc-step assigned" id="lc-assigned" onclick="setLifecycleStatus('assigned')">🟢 Atandı</button>
-          <button type="button" class="lc-step completed" id="lc-completed" onclick="setLifecycleStatus('completed')">✅ Tamamlandı</button>
-        </div>
-        <input type="hidden" id="lifecycleStatusVal" value="planned">
-        <div id="lcDriverWarning" style="display:none;color:var(--red);font-size:12px;margin-top:6px;font-weight:600">⚠️ "Atandı" için şoför adı ve araç plakası zorunludur.</div>
       </div>
 
       <div class="sf-form-section">
@@ -4807,7 +4798,7 @@ function calcProfit() {
   }
 }
 
-var _filterLabels={'all':'Tüm İşler','unpaid':'Ödenmemiş','profit':'Kazanç','loss':'Kayıp','driverpending':'Şoför Bekleyen','ileri':'İleri Tarihli','ortak':'Ortak','sadece-burak':'Burak','sadece-ahmet':'Ahmet'};
+var _filterLabels={'all':'Tüm İşler','unpaid':'Ödenmemiş','profit':'Kazanç','loss':'Kayıp','driverpending':'Şoför Bekleyen','ileri':'İleri Tarihli','ortak':'Ortak','sadece-burak':'Burak','sadece-ahmet':'Ahmet','draft':'Taslaklar'};
 function setFilter(f) {
   currentFilter = f;
   document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
@@ -4999,7 +4990,7 @@ function clearForm(){
   // Şoför search
   var ss = document.getElementById('soforSearch'); if(ss) ss.value = '';
   var _jsv2=document.getElementById('jobStatusVal');if(_jsv2)_jsv2.value='yolda';
-  setLifecycleStatus('planned');
+  setLifecycleStatus('planned'); // Taslak toggle'ı sıfırla
   var _ot=document.getElementById('odemeTipi');if(_ot)_ot.value='';
   setIsSahibi('ortak');
   // Yetkili dropdown'ı sıfırla
@@ -5339,6 +5330,8 @@ async function syncPortalData() {
           c.name.toUpperCase().trim() === j.customerName.toUpperCase().trim();
       });
       if (!match) return;
+      // Taslak işler portale gönderilmez
+      if (j.lifecycleStatus === 'draft') return;
       upsertRows.push({
         owner_company_id: window._gkCompanyId,
         customer_company_id: match.id,
@@ -5500,7 +5493,8 @@ function filteredJobs() {
   return jobs.filter(function(j) {
     var m=!q||[j.customerName,j.contactFirst,j.contactLast,j.driverFirst,j.driverLast,j.plate,j.origin,j.destination,j.cargoType,j.loaderFirm,j.receiverFirm].some(function(v){ return v&&v.toLowerCase().includes(q); });
     var _today=new Date().toISOString().split('T')[0];
-    var f=currentFilter==='all'||(currentFilter==='unpaid'&&!j.paid)||(currentFilter==='driverpending'&&!j.driverPaid&&(j.driverNet||0)>0)||(currentFilter==='ileri'&&j.date>_today)||(currentFilter==='burak'&&(j.isSahibi==='burak'||(j.isSahibi||'ortak')==='ortak'))||(currentFilter==='ahmet'&&(j.isSahibi==='ahmet'||(j.isSahibi||'ortak')==='ortak'))||(currentFilter==='sadece-burak'&&j.isSahibi==='burak')||(currentFilter==='sadece-ahmet'&&j.isSahibi==='ahmet')||(currentFilter==='ortak'&&(j.isSahibi||'ortak')==='ortak')||(currentFilter==='profit'&&j.profit>=0)||(currentFilter==='loss'&&j.profit<0)||(currentFilter==='pos'&&j.profit>=0)||(currentFilter==='neg'&&j.profit<0);
+    var _isDraft = j.lifecycleStatus === 'draft';
+    var f=currentFilter==='all'||(currentFilter==='draft'&&_isDraft)||(currentFilter==='unpaid'&&!j.paid&&!_isDraft)||(currentFilter==='driverpending'&&!j.driverPaid&&(j.driverNet||0)>0&&!_isDraft)||(currentFilter==='ileri'&&j.date>_today&&!_isDraft)||(currentFilter==='burak'&&(j.isSahibi==='burak'||(j.isSahibi||'ortak')==='ortak'))||(currentFilter==='ahmet'&&(j.isSahibi==='ahmet'||(j.isSahibi||'ortak')==='ortak'))||(currentFilter==='sadece-burak'&&j.isSahibi==='burak')||(currentFilter==='sadece-ahmet'&&j.isSahibi==='ahmet')||(currentFilter==='ortak'&&(j.isSahibi||'ortak')==='ortak')||(currentFilter==='profit'&&j.profit>=0&&!_isDraft)||(currentFilter==='loss'&&j.profit<0&&!_isDraft)||(currentFilter==='pos'&&j.profit>=0)||(currentFilter==='neg'&&j.profit<0);
     var y = _listYear===0 || (j.date && j.date.startsWith(String(_listYear)));
     return m&&f&&y;
   });
@@ -5765,6 +5759,8 @@ function renderList() {
   }
 
   tbody.innerHTML=list.map(function(j,i){
+    var _jDraft = j.lifecycleStatus === 'draft';
+    var _draftRowStyle = _jDraft ? 'opacity:0.55;' : '';
     var sc_sl=jobStatus(j); var sc=sc_sl[0]; var sl=sc_sl[1];
     var plateHtml = j.plate ? '<span class="plate-tag" style="font-size:10px">'+normalizePlakaTxt(j.plate)+'</span>' : '';
     var dorseHtml = j.plateDorse ? '<span class="plate-tag" style="font-size:10px;background:rgba(45,125,210,0.1);border-color:rgba(74,158,255,0.3);color:var(--blue)">'+normalizePlakaTxt(j.plateDorse)+'</span>' : '';
@@ -5788,13 +5784,14 @@ function renderList() {
     var listMarj  = sellNetPx>0 ? (j.profit/sellNetPx*100).toFixed(1) : '0.0';
     var marjColor = j.profit>=0 ? 'var(--green)' : 'var(--red)';
     var futureRowStyle = isFuture ? 'background:rgba(37,99,235,.04);border-left:3px solid var(--blue)' : '';
-    return '<tr onclick="showDetail('+j.id+')" style="cursor:pointer;'+futureRowStyle+'">'
+    var draftRowStyle = _jDraft ? 'background:rgba(245,158,11,.03);border-left:3px solid rgba(245,158,11,.4);' : '';
+    return '<tr onclick="showDetail('+j.id+')" style="cursor:pointer;'+futureRowStyle+draftRowStyle+_draftRowStyle+'">'
       // 1. Sıra
       +'<td style="'+P+';color:var(--muted);font-size:11px">'+(list.length-i)+'</td>'
       // 2. Tarih (kısa: 31.03) — ileri tarihte takvim ikonu ekle
       +'<td style="'+P+';color:'+(isFuture?'var(--blue)':'var(--muted)')+';font-size:11px;white-space:nowrap">'+(isFuture?'📅 ':'')+fmtDateShort(j.date)+'</td>'
       // 3. Müşteri + badge
-      +'<td style="'+P+'"><div style="font-size:13px;font-weight:600;color:var(--text)">'+j.customerName+renderIsSahibiBadge(j.isSahibi)+'</div></td>'
+      +'<td style="'+P+'"><div style="font-size:13px;font-weight:600;color:var(--text)">'+j.customerName+renderIsSahibiBadge(j.isSahibi)+(_jDraft?'<span style="margin-left:4px;font-size:9px;font-weight:700;color:#F59E0B;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:4px;padding:1px 5px">📋 Taslak</span>':'')+'</div></td>'
       // 4. Güzergah
       +'<td style="'+P+'">'
         +'<div style="font-size:11px;font-weight:500;color:var(--text2);line-height:1.4">'+(j.origin||'—')+' → '+(j.destination||'—')+'</div>'
@@ -9246,19 +9243,36 @@ var JS_STEPS = ['hazirlaniyor','yuklendi','yolda','teslim'];
 var JS_LABELS = { hazirlaniyor:'Hazırlanıyor', yuklendi:'Yüklendi', yolda:'🚛 Yolda', teslim:'Teslim' };
 function jsLabel(s) { return JS_LABELS[s] || s; }
 
-function setLifecycleStatus(step) {
+function toggleTaslak() {
   var inp = document.getElementById('lifecycleStatusVal');
-  if (inp) inp.value = step;
-  ['draft','planned','assigned','completed'].forEach(function(s) {
-    var btn = document.getElementById('lc-' + s);
-    if (!btn) return;
-    btn.className = 'lc-step ' + s + (s === step ? ' lc-active' : '');
-  });
-  var warn = document.getElementById('lcDriverWarning');
-  if (warn) warn.style.display = (step === 'assigned') ? 'block' : 'none';
+  var btn = document.getElementById('taslakToggleBtn');
+  if (!inp) return;
+  var isDraft = inp.value === 'draft';
+  inp.value = isDraft ? 'planned' : 'draft';
+  if (btn) {
+    if (!isDraft) {
+      btn.style.background = 'rgba(245,158,11,.12)';
+      btn.style.borderColor = '#F59E0B';
+      btn.style.color = '#F59E0B';
+    } else {
+      btn.style.background = 'var(--surface2)';
+      btn.style.borderColor = 'var(--border)';
+      btn.style.color = 'var(--muted)';
+    }
+  }
 }
 
-function setLifecycleStatusForm(step) { setLifecycleStatus(step || 'planned'); }
+function setLifecycleStatus(step) {
+  var inp = document.getElementById('lifecycleStatusVal');
+  if (inp) inp.value = step || 'planned';
+  var btn = document.getElementById('taslakToggleBtn');
+  if (btn) {
+    var isDraft = (step === 'draft');
+    btn.style.background = isDraft ? 'rgba(245,158,11,.12)' : 'var(--surface2)';
+    btn.style.borderColor = isDraft ? '#F59E0B' : 'var(--border)';
+    btn.style.color = isDraft ? '#F59E0B' : 'var(--muted)';
+  }
+}
 
 function setJobStatusForm(step) {
   var _jsv = document.getElementById('jobStatusVal'); if(_jsv) _jsv.value = step;
