@@ -43,6 +43,24 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
+/* ── Light Mode ── */
+[data-theme="light"] {
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface2: #f8fafc;
+  --surface3: #f0f4f8;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --text: #0f172a;
+  --text2: #334155;
+  --muted: #64748b;
+  --green: #059669;
+  --green-dim: rgba(5,150,105,.12);
+  --red: #dc2626;
+}
+[data-theme="light"] .portal-header { background: #1a2235; }
+[data-theme="light"] .cari-ozet-wrap { background: linear-gradient(135deg,#1e293b,#0f172a); }
+
 /* ── Reset ── */
 *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
@@ -1223,10 +1241,11 @@ tbody td {
           <path d="M 90 15 L 30 15 A 15 15 0 0 0 15 30 L 15 70 A 15 15 0 0 0 30 85 L 70 85 A 15 15 0 0 0 85 70 L 85 45 L 55 45" stroke="#717171" stroke-width="8.5" stroke-linejoin="miter" stroke-linecap="butt"/>
           <path d="M 38 30 L 38 57 A 8 8 0 0 0 46 65 L 65 65" stroke="#FFCD36" stroke-width="8.5" stroke-linejoin="miter" stroke-linecap="butt"/>
         </svg>
+        <span style="font-family:'Inter',sans-serif;font-size:22px;font-weight:300;letter-spacing:4px;color:#808285;line-height:1">E</span>
       </div>
       <div style="margin-left:10px;border-left:1px solid rgba(255,255,255,.12);padding-left:10px">
         <div class="header-brand-main" id="header-company-name">Müşteri Portali</div>
-        <span class="header-brand-sub">Müşteri Portali</span>
+        <span class="header-brand-sub">MÜŞTERİ PORTALİ</span>
       </div>
     </div>
 
@@ -1236,6 +1255,7 @@ tbody td {
         <div class="header-user-role">Müşteri</div>
       </div>
       <div class="header-avatar" id="header-avatar">?</div>
+      <button id="themeToggleBtn" onclick="togglePortalTheme()" title="Tema değiştir" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#94a3b8;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:6px;transition:all .2s">☀️</button>
       <button class="btn-logout" onclick="handleLogout()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -1541,6 +1561,31 @@ let currentToken = null;
 let companyId = null;
 let companyName = null;
 
+function togglePortalTheme() {
+  var html = document.documentElement;
+  var current = html.getAttribute('data-theme');
+  var next = (current === 'light') ? 'dark' : 'light';
+  if (next === 'dark') {
+    html.removeAttribute('data-theme');
+  } else {
+    html.setAttribute('data-theme', 'light');
+  }
+  localStorage.setItem('portal-theme', next);
+  var btn = document.getElementById('themeToggleBtn');
+  if (btn) btn.textContent = next === 'light' ? '🌙' : '☀️';
+  // Chart'ları yeniden render et
+  if (typeof renderCharts === 'function' && allData && allData.length) renderCharts();
+}
+// Sayfa yüklendiğinde tema uygula
+(function() {
+  var saved = localStorage.getItem('portal-theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    var btn = document.getElementById('themeToggleBtn');
+    if (btn) btn.textContent = '🌙';
+  }
+})();
+
 function shortenCompanyName(name) {
   if (!name) return name;
   var suffixes = [
@@ -1715,12 +1760,16 @@ async function loadCompanyId() {
   } catch(e) {
     companyId = null;
   }
-  // Şirket adını çek
+  // Şirket adını çek — kolon adı bilinmiyor, select=* ile tüm alanları al
   if (companyId) {
     try {
-      var r2 = await fetch(SUPA_URL + '/rest/v1/customer_companies?select=name&id=eq.' + companyId + '&limit=1', { headers: getAuthHeaders() });
+      var r2 = await fetch(SUPA_URL + '/rest/v1/customer_companies?select=*&id=eq.' + companyId + '&limit=1', { headers: getAuthHeaders() });
       var rows2 = await r2.json();
-      companyName = (rows2 && rows2[0]) ? rows2[0].name : null;
+      if (rows2 && rows2[0]) {
+        var row = rows2[0];
+        // Olası kolon adlarını dene
+        companyName = row.name || row.company_name || row.firma_adi || row.title || row.ad || null;
+      }
     } catch(e) { companyName = null; }
   }
   // Header şirket adını güncelle
@@ -1975,45 +2024,49 @@ function renderCharts() {
   if (!sec || !allData || !allData.length) return;
   sec.style.display = '';
 
-  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  var textColor = isDark ? '#94a3b8' : '#64748b';
-  var gridColor = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.05)';
-  var tooltipTheme = isDark ? 'dark' : 'light';
+  // Portal dark-first — light mode varsa kontrol et
+  var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  var textColor  = isLight ? '#475569' : '#94a3b8';
+  var text2Color = isLight ? '#0f172a' : '#e2e8f0';
+  var gridColor  = isLight ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.05)';
+  var cardBg     = 'transparent';
+  var tooltipTheme = isLight ? 'light' : 'dark';
 
-  var baseChart = {
-    background: 'transparent',
-    toolbar: { show: false },
-    fontFamily: "'DM Sans', sans-serif",
-    animations: { enabled: true, easing: 'easeinout', speed: 800, animateGradually: { enabled: true, delay: 80 }, dynamicAnimation: { enabled: true, speed: 350 } }
+  var baseAnim = { enabled: true, easing: 'easeinout', speed: 900,
+    animateGradually: { enabled: true, delay: 100 },
+    dynamicAnimation: { enabled: true, speed: 400 }
   };
 
-  // ── 1. ÖDEME DENGESİ — Radialbar + Donut hybrid ──
-  var odendi = allData.filter(function(r){ return r.odeme_durumu === 'odendi'; }).length;
+  // ── 1. ÖDEME DENGESİ — Donut Glow ──
+  var odendi   = allData.filter(function(r){ return r.odeme_durumu === 'odendi'; }).length;
   var bekliyor = allData.filter(function(r){ return r.odeme_durumu !== 'odendi'; }).length;
-  var total = odendi + bekliyor;
-  var pct = total > 0 ? Math.round(odendi / total * 100) : 0;
-  if (_charts.odeme) { _charts.odeme.destroy(); }
+  var total    = odendi + bekliyor;
+  var pct      = total > 0 ? Math.round(odendi / total * 100) : 0;
+  if (_charts.odeme) { _charts.odeme.destroy(); _charts.odeme = null; }
   _charts.odeme = new ApexCharts(document.getElementById('chartOdeme'), {
-    chart: Object.assign({}, baseChart, { type: 'donut', height: 220 }),
+    chart: {
+      type: 'donut', height: 230, background: cardBg,
+      toolbar: { show: false },
+      fontFamily: "'DM Sans', sans-serif",
+      animations: baseAnim,
+      dropShadow: { enabled: true, top: 0, left: 0, blur: 14, color: ['#22c55e','#f59e0b'], opacity: 0.3 }
+    },
     series: [odendi, bekliyor],
     labels: ['Tahsil Edildi', 'Bekliyor'],
     colors: ['#22c55e', '#f59e0b'],
     fill: {
       type: 'gradient',
-      gradient: {
-        shade: 'dark', type: 'vertical', gradientToColors: ['#16a34a', '#d97706'],
-        stops: [0, 100]
-      }
+      gradient: { shade: 'dark', type: 'vertical', gradientToColors: ['#16a34a','#d97706'], stops: [0,100] }
     },
     stroke: { width: 0 },
     plotOptions: {
       pie: {
         donut: {
-          size: '72%',
+          size: '70%',
           labels: {
             show: true,
-            name: { show: true, fontSize: '11px', color: textColor, offsetY: 20 },
-            value: { show: true, fontSize: '22px', fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', offsetY: -15,
+            name: { show: true, fontSize: '11px', color: textColor, offsetY: 18 },
+            value: { show: true, fontSize: '26px', fontWeight: 800, color: text2Color, offsetY: -12,
               formatter: function() { return pct + '%'; }
             },
             total: { show: true, label: 'Tahsil', fontSize: '11px', color: textColor,
@@ -2023,7 +2076,9 @@ function renderCharts() {
         }
       }
     },
-    legend: { position: 'bottom', fontSize: '12px', fontWeight: 500, labels: { colors: textColor },
+    legend: {
+      position: 'bottom', fontSize: '12px', fontWeight: 600,
+      labels: { colors: textColor },
       markers: { width: 8, height: 8, radius: 4 }
     },
     dataLabels: { enabled: false },
@@ -2035,100 +2090,136 @@ function renderCharts() {
   });
   _charts.odeme.render();
 
-  // ── 2. AYLIK TAŞIMA TRENDİ — Area ──
+  // ── 2. AYLIK TAŞIMA TRENDİ — Area Glow ──
   var monthMap = {};
   allData.forEach(function(r) {
     if (!r.tarih) return;
     var ym = r.tarih.slice(0, 7);
-    if (!monthMap[ym]) monthMap[ym] = { adet: 0 };
-    monthMap[ym].adet++;
+    if (!monthMap[ym]) monthMap[ym] = 0;
+    monthMap[ym]++;
   });
   var months = Object.keys(monthMap).sort().slice(-8);
+  var aylar = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
   var trendLabels = months.map(function(m) {
     var p = m.split('-');
-    var aylar = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
-    return aylar[parseInt(p[1], 10) - 1] + ' \'' + p[0].slice(2);
+    return aylar[parseInt(p[1],10)-1] + " '" + p[0].slice(2);
   });
-  var trendAdet = months.map(function(m) { return monthMap[m].adet; });
-  if (_charts.trend) { _charts.trend.destroy(); }
+  var trendData = months.map(function(m) { return monthMap[m]; });
+  if (_charts.trend) { _charts.trend.destroy(); _charts.trend = null; }
   _charts.trend = new ApexCharts(document.getElementById('chartTrend'), {
-    chart: Object.assign({}, baseChart, { type: 'area', height: 220 }),
-    series: [{ name: 'Taşıma', data: trendAdet }],
+    chart: {
+      type: 'area', height: 230, background: cardBg,
+      toolbar: { show: false },
+      fontFamily: "'DM Sans', sans-serif",
+      animations: baseAnim,
+      dropShadow: { enabled: true, top: 4, left: 0, blur: 12, color: '#818cf8', opacity: 0.35 }
+    },
+    series: [{ name: 'Taşıma', data: trendData }],
     xaxis: {
       categories: trendLabels,
       axisBorder: { show: false }, axisTicks: { show: false },
       labels: { style: { colors: textColor, fontSize: '11px', fontWeight: 500 } }
     },
     yaxis: {
-      min: 0,
-      tickAmount: 3,
+      min: 0, tickAmount: 3,
       labels: { style: { colors: textColor, fontSize: '11px' }, formatter: function(v){ return Math.round(v); } }
     },
     colors: ['#818cf8'],
     fill: {
       type: 'gradient',
-      gradient: { shadeIntensity: 1, type: 'vertical', colorStops: [
-        [{ offset: 0, color: '#818cf8', opacity: 0.45 }, { offset: 100, color: '#818cf8', opacity: 0.02 }]
-      ]}
+      gradient: {
+        shadeIntensity: 1, type: 'vertical',
+        colorStops: [[
+          { offset: 0,   color: '#818cf8', opacity: 0.5 },
+          { offset: 100, color: '#818cf8', opacity: 0.02 }
+        ]]
+      }
     },
-    stroke: { curve: 'smooth', width: 2.5, colors: ['#818cf8'] },
-    markers: { size: trendAdet.length <= 6 ? 5 : 0, colors: ['#818cf8'], strokeColors: isDark ? '#1e293b' : '#fff', strokeWidth: 2, hover: { size: 7 } },
-    grid: { borderColor: gridColor, strokeDashArray: 4, padding: { left: 4, right: 4 } },
+    stroke: { curve: 'smooth', width: 3, colors: ['#818cf8'] },
+    markers: {
+      size: trendData.length <= 8 ? 5 : 0,
+      colors: ['#818cf8'],
+      strokeColors: isLight ? '#fff' : '#0d1526',
+      strokeWidth: 2,
+      hover: { size: 7 }
+    },
+    grid: { borderColor: gridColor, strokeDashArray: 4, padding: { left: 2, right: 6 } },
     dataLabels: { enabled: false },
     tooltip: {
       theme: tooltipTheme,
       style: { fontSize: '12px', fontFamily: "'DM Sans', sans-serif" },
-      x: { show: true },
-      y: { formatter: function(v) { return v + ' iş'; } },
+      y: { formatter: function(v) { return v + ' taşıma'; } },
       marker: { show: true }
     }
   });
   _charts.trend.render();
 
-  // ── 3. YÜKLEYİCİ / ALICI FİRMA ──
+  // ── 3. YÜKLEYİCİ / ALICI FİRMA — Horizontal Bar Glow ──
   var yukMap = {}, alMap = {};
   allData.forEach(function(r) {
-    if (r.yukleyici_firma) yukMap[r.yukleyici_firma] = (yukMap[r.yukleyici_firma] || 0) + 1;
-    if (r.alici_firma)    alMap[r.alici_firma]    = (alMap[r.alici_firma]    || 0) + 1;
+    if (r.yukleyici_firma) yukMap[r.yukleyici_firma] = (yukMap[r.yukleyici_firma]||0)+1;
+    if (r.alici_firma)    alMap[r.alici_firma]    = (alMap[r.alici_firma]||0)+1;
   });
   var topYuk = Object.keys(yukMap).sort(function(a,b){ return yukMap[b]-yukMap[a]; }).slice(0,5);
   var topAl  = Object.keys(alMap).sort(function(a,b){ return alMap[b]-alMap[a]; }).slice(0,5);
   var firmaLabels = topYuk.concat(topAl.filter(function(f){ return topYuk.indexOf(f)<0; })).slice(0,6);
-  if (_charts.firma) { _charts.firma.destroy(); }
   var firmaEl = document.getElementById('chartFirma');
+  if (_charts.firma) { _charts.firma.destroy(); _charts.firma = null; }
   if (!firmaLabels.length) {
-    firmaEl.innerHTML = '<div style="height:220px;display:flex;align-items:center;justify-content:center;color:' + textColor + ';font-size:13px;opacity:.6">Henüz firma verisi yok</div>';
-  } else {
-    _charts.firma = new ApexCharts(firmaEl, {
-      chart: Object.assign({}, baseChart, { type: 'bar', height: 220 }),
-      plotOptions: { bar: { horizontal: true, borderRadius: 5, borderRadiusApplication: 'end', barHeight: '55%', distributed: false } },
-      series: [
-        { name: 'Yükleyici', data: firmaLabels.map(function(f){ return yukMap[f]||0; }) },
-        { name: 'Alıcı',    data: firmaLabels.map(function(f){ return alMap[f]||0; }) }
-      ],
-      xaxis: {
-        categories: firmaLabels,
-        axisBorder: { show: false }, axisTicks: { show: false },
-        labels: { style: { colors: textColor, fontSize: '10px' }, formatter: function(v){ return Math.round(v); } }
-      },
-      yaxis: { labels: { style: { colors: isDark ? '#e2e8f0' : '#334155', fontSize: '10px', fontWeight: 600 }, maxWidth: 110 } },
-      colors: ['#818cf8', '#34d399'],
-      fill: {
-        type: 'gradient',
-        gradient: { shade: 'light', type: 'horizontal', shadeIntensity: 0.3, gradientToColors: ['#6366f1', '#10b981'], stops: [0, 100] }
-      },
-      grid: { borderColor: gridColor, strokeDashArray: 4, xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } } },
-      dataLabels: { enabled: false },
-      legend: { position: 'top', fontSize: '11px', fontWeight: 600, labels: { colors: textColor }, markers: { width: 8, height: 8, radius: 4 } },
-      tooltip: {
-        theme: tooltipTheme,
-        style: { fontSize: '12px', fontFamily: "'DM Sans', sans-serif" },
-        shared: true, intersect: false,
-        y: { formatter: function(v) { return v + ' iş'; } }
-      }
-    });
-    _charts.firma.render();
+    firmaEl.innerHTML = '<div style="height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px"><div style="font-size:28px;opacity:.3">📦</div><div style="color:'+textColor+';font-size:12px;opacity:.5">Henüz firma verisi yok</div></div>';
+    return;
   }
+  _charts.firma = new ApexCharts(firmaEl, {
+    chart: {
+      type: 'bar', height: 230, background: cardBg,
+      toolbar: { show: false },
+      fontFamily: "'DM Sans', sans-serif",
+      animations: baseAnim,
+      dropShadow: { enabled: true, top: 2, left: 0, blur: 10, color: ['#818cf8','#34d399'], opacity: 0.25 }
+    },
+    plotOptions: {
+      bar: { horizontal: true, borderRadius: 6, borderRadiusApplication: 'end', barHeight: '50%' }
+    },
+    series: [
+      { name: 'Yükleyici', data: firmaLabels.map(function(f){ return yukMap[f]||0; }) },
+      { name: 'Alıcı',    data: firmaLabels.map(function(f){ return alMap[f]||0; }) }
+    ],
+    xaxis: {
+      categories: firmaLabels,
+      axisBorder: { show: false }, axisTicks: { show: false },
+      labels: { style: { colors: textColor, fontSize: '10px' }, formatter: function(v){ return Math.round(v); } }
+    },
+    yaxis: {
+      labels: { style: { colors: text2Color, fontSize: '10px', fontWeight: 600 }, maxWidth: 120 }
+    },
+    colors: ['#818cf8', '#34d399'],
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: 'dark', type: 'horizontal',
+        gradientToColors: ['#6366f1','#10b981'],
+        stops: [0, 100]
+      }
+    },
+    grid: {
+      borderColor: gridColor, strokeDashArray: 4,
+      xaxis: { lines: { show: true } },
+      yaxis: { lines: { show: false } }
+    },
+    dataLabels: { enabled: false },
+    legend: {
+      position: 'top', fontSize: '11px', fontWeight: 600,
+      labels: { colors: textColor },
+      markers: { width: 8, height: 8, radius: 4 }
+    },
+    tooltip: {
+      theme: tooltipTheme,
+      style: { fontSize: '12px', fontFamily: "'DM Sans', sans-serif" },
+      shared: true, intersect: false,
+      y: { formatter: function(v){ return v + ' iş'; } }
+    }
+  });
+  _charts.firma.render();
 }
 
 // ════════════════════════════════════════
