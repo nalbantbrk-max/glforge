@@ -5357,12 +5357,33 @@ async function syncPortalData() {
       });
     });
 
-    if (!upsertRows.length) return;
-    await fetch(BASE + '/portal_data?on_conflict=job_id', {
-      method: 'POST',
-      headers: _portalAuthHeaders(),
-      body: JSON.stringify(upsertRows)
-    });
+    // Upsert — aktif işleri güncelle/ekle
+    if (upsertRows.length) {
+      await fetch(BASE + '/portal_data?on_conflict=job_id', {
+        method: 'POST',
+        headers: _portalAuthHeaders(),
+        body: JSON.stringify(upsertRows)
+      });
+    }
+
+    // Cleanup — silinmiş veya taslak hale gelmiş işleri portal_data'dan kaldır
+    var companyIds = companies.map(function(c){ return c.id; });
+    for (var ci = 0; ci < companyIds.length; ci++) {
+      var cId = companyIds[ci];
+      var activeIds = upsertRows.filter(function(r){ return r.customer_company_id === cId; }).map(function(r){ return r.job_id; });
+      try {
+        if (activeIds.length > 0) {
+          await fetch(BASE + '/portal_data?customer_company_id=eq.' + cId + '&job_id=not.in.(' + activeIds.join(',') + ')', {
+            method: 'DELETE', headers: _portalAuthHeaders()
+          });
+        } else {
+          // Bu firma için hiç aktif iş yok — tümünü temizle
+          await fetch(BASE + '/portal_data?customer_company_id=eq.' + cId, {
+            method: 'DELETE', headers: _portalAuthHeaders()
+          });
+        }
+      } catch(e) {}
+    }
   } catch(e) {}
 }
 
