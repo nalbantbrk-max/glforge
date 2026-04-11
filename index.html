@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Göker CRM">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -95,11 +95,11 @@ header{position:-webkit-sticky;position:sticky;top:0;z-index:100;height:60px;bac
 [data-theme="dark"][data-accent="turuncu"]{ --accent:#FB923C;--accent-dim:rgba(251,146,60,.15);--accent-bg:rgba(251,146,60,.07); }
 [data-theme="dark"][data-accent="gul"]    { --accent:#FB7185;--accent-dim:rgba(251,113,133,.15);--accent-bg:rgba(251,113,133,.07); }
 [data-theme="dark"][data-accent="altin"]  { --accent:#FBB224;--accent-dim:rgba(251,178,36,.15);--accent-bg:rgba(251,178,36,.07); }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;min-height:100dvh;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;min-height:100dvh;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased;overflow-x:hidden;-webkit-touch-callout:none}
 header{color:var(--header-text);background:linear-gradient(135deg,#1A2E4A 0%,#112038 35%,#0F1829 100%);border-bottom:2px solid var(--accent);border-radius:0 0 16px 16px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;height:56px;position:fixed;top:0;left:0;right:0;z-index:100;box-shadow:0 1px 0 rgba(255,255,255,.04),0 4px 16px rgba(0,0,0,.22)}
 body{padding-top:56px}
-@media all and (display-mode:standalone){header{top:calc(env(safe-area-inset-top,0px) - 10px)}body{padding-top:calc(58px + env(safe-area-inset-top,0px))}body::before{content:'';position:fixed;top:0;left:0;right:0;height:calc(env(safe-area-inset-top,0px) - 10px);background:#0F1829;z-index:99}}
+@media all and (display-mode:standalone){header{top:env(safe-area-inset-top,0px);height:56px}body{padding-top:calc(56px + env(safe-area-inset-top,0px))}body::before{content:'';position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#0F1829;z-index:101}}
 
 .logo{display:flex;align-items:center;gap:10px;position:relative;z-index:1;}
 .header-stats{position:relative;z-index:1;}
@@ -1963,6 +1963,7 @@ body.sidebar-expanded .tab-panel.active {
 @media(max-width:768px){ #arAgingCards { grid-template-columns:repeat(2,1fr) !important; } }
 </style>
 <!-- Google Maps API anahtarı Ayarlar > API Anahtarları'ndan yüklenir -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const supabaseUrl = 'https://kdadkibbhejfmusuysif.supabase.co';
@@ -5769,7 +5770,7 @@ function renderList() {
         + '<div style="flex:1;min-width:0">'
           // Satır 1: Müşteri + Tarih
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">'
-            + '<span style="font-weight:700;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%">' + (j.customerName||'—') + renderIsSahibiBadge(j.isSahibi) + '</span>'
+            + '<span style="font-weight:700;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%" title="' + (j.customerName||'') + '">' + shortenName(j.customerName||'—') + renderIsSahibiBadge(j.isSahibi) + '</span>'
             + '<span style="font-size:10px;color:var(--muted);flex-shrink:0">' + fmtDate(j.date) + '</span>'
           + '</div>'
           // Satır 2: Güzergah + Fiyat
@@ -5866,14 +5867,15 @@ function renderList() {
 function shortenName(name) {
   if (!name) return name;
   var r = name.trim();
-  // En kapsamlı kalıplardan başla (sıra önemli)
-  var pats = [
+  // Faz 1: Tüzel kişilik son ekleri (en kapsamlıdan başla)
+  var legalPats = [
     /[\s,]+SANAYİ\s+VE\s+TİCARET\s+ANONİM\s+ŞİRKETİ\.?$/i,
     /[\s,]+SANAYİ\s+VE\s+TİCARET\s+LİMİTED\s+ŞİRKETİ\.?$/i,
     /[\s,]+SANAYİ\s+TİCARET\s+ANONİM\s+ŞİRKETİ\.?$/i,
     /[\s,]+SANAYİ\s+TİCARET\s+LİMİTED\s+ŞİRKETİ\.?$/i,
     /[\s,]+SANAYİ\s+VE\s+TİCARET\s+(?:A\.?Ş\.?|LTD\.?\s*ŞTİ\.?)\.?$/i,
     /[\s,]+SANAYİ\s+TİCARET\s+(?:A\.?Ş\.?|LTD\.?\s*ŞTİ\.?)\.?$/i,
+    /[\s,]+SAN\.?\s*(?:VE\s+)?TİC\.?\s+(?:A\.?Ş\.?|LTD\.?\s*ŞTİ\.?)\.?$/i,
     /[\s,]+İTHALAT\s+(?:VE\s+)?İHRACAT\s+(?:LİMİTED\s+ŞİRKETİ|ANONİM\s+ŞİRKETİ|A\.?Ş\.?|LTD\.?\s*ŞTİ\.?)\.?$/i,
     /[\s,]+ANONİM\s+ŞİRKETİ\.?$/i,
     /[\s,]+LİMİTED\s+ŞİRKETİ\.?$/i,
@@ -5881,18 +5883,44 @@ function shortenName(name) {
     /[\s,]+A\.Ş\.?$/i,
     /[\s,]+AŞ$/i,
     /[\s,]+ŞTİ\.?$/i,
+  ];
+  for (var i = 0; i < legalPats.length; i++) {
+    var trimmed = r.replace(legalPats[i], '').trim();
+    if (trimmed.length >= 2) r = trimmed;
+  }
+  // Faz 2: Sektör ve ticari ünvan kelimeleri (sondaki kalıpları temizle)
+  var sectorPats = [
     /[\s,]+SANAYİ\s+VE\s+TİCARET$/i,
     /[\s,]+SANAYİ\s+TİCARET$/i,
+    /[\s,]+SAN\.?\s*(?:VE\s+)?TİC\.?$/i,
     /[\s,]+İTHALAT\s+(?:VE\s+)?İHRACAT$/i,
     /[\s,]+İHRACAT\s+(?:VE\s+)?İTHALAT$/i,
+    /[\s,]+LOJİSTİK\s+TAŞIMACILIK.*$/i,
+    /[\s,]+LOJİSTİK\s+VE\s+TAŞIMACILIK.*$/i,
+    /[\s,]+LOJİSTİK\s+NAKLİYAT.*$/i,
+    /[\s,]+TAŞIMACILIK\s+LOJİSTİK.*$/i,
+    /[\s,]+LOJİSTİK.*$/i,
+    /[\s,]+TAŞIMACILIK.*$/i,
+    /[\s,]+NAKLİYAT.*$/i,
+    /[\s,]+NAKLİYE.*$/i,
+    /[\s,]+ULUSLARARASI.*$/i,
+    /[\s,]+INTERNATIONAL.*$/i,
+    /[\s,]+TURİZM.*$/i,
+    /[\s,]+İNŞAAT.*$/i,
+    /[\s,]+GIDA.*$/i,
+    /[\s,]+TEKSTİL.*$/i,
+    /[\s,]+OTOMOTİV.*$/i,
+    /[\s,]+MADENCİLİK.*$/i,
+    /[\s,]+ENERJİ.*$/i,
+    /[\s,]+DEPOLAMA.*$/i,
     /[\s,]+SANAYİ$/i,
     /[\s,]+TİCARET$/i,
     /[\s,]+SAN\.$/i,
     /[\s,]+TİC\.$/i,
   ];
-  for (var i = 0; i < pats.length; i++) {
-    var trimmed = r.replace(pats[i], '').trim();
-    if (trimmed.length >= 2) r = trimmed;
+  for (var j = 0; j < sectorPats.length; j++) {
+    var trimmed2 = r.replace(sectorPats[j], '').trim();
+    if (trimmed2.length >= 2) r = trimmed2;
   }
   return r || name;
 }
@@ -6753,21 +6781,45 @@ function showToast(msg, dur) {
 
 function exportCSV() {
   if(!jobs.length){showToast('ℹ️ Dışa aktarılacak kayıt yok');return;}
-  var h=['No','Tarih','Müşteri','İlgili Kişi','Yük','Miktar','Nereden','Nereye','Yükleyici','Alıcı','Şoför Adı','Soyad','Telefon','Plaka','Alış Net','Alış KDV%','Alış KDV','Alış Toplam','Şoför Komisyon','Şoföre Net Ödeme','Satış Net','Satış KDV%','Satış KDV','Satış Toplam','Kar/Zarar','Tahsilat','Notlar'];
-  var rows=jobs.map(function(j,i){ return [
-    jobs.length-i,fmtDate(j.date),j.customerName,(j.contactFirst||'') + ' ' + (j.contactLast||'').trim(),
-    j.cargoType,j.cargoWeight,j.origin,j.destination,j.loaderFirm,j.receiverFirm,
-    j.driverFirst,j.driverLast,j.driverPhone,j.plate,
-    j.buyPrice.toFixed(2),j.buyKdvPct,j.buyKdv.toFixed(2),j.buyTotal.toFixed(2),
-    (j.driverCommission||0).toFixed(2),(j.driverNet||0).toFixed(2),
-    j.sellPrice.toFixed(2),j.sellKdvPct,j.sellKdv.toFixed(2),j.sellTotal.toFixed(2),
-    j.profit.toFixed(2),j.paid?'Tahsil Edildi':'Bekliyor',j.notes
-  ].map(function(v){ return '"' + String(v||''). replace(/"/g, '""')+'"'; }).join(','); });
-  var csv='\uFEFF'+[h.join(',')].concat(rows).join('\n');
-  var a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
-  a.download='logitrack_' + (new Date().toISOString().split('T')[0]) + '.csv';
-  a.click();
+  try {
+    var C_HEADER_BG='1E293B',C_HEADER_FG='F59E0B',C_ROW_ODD='FFFFFF',C_ROW_EVEN='FFFBEB',C_BORDER='E2E8F0';
+    var HEADERS=['No','Tarih','Müşteri','İlgili Kişi','Yük Tipi','Nereden','Nereye','Şoför','Plaka',
+      'Alış Net','Alış KDV%','Alış KDV','Alış Toplam','Satış Net','Satış KDV%','Satış KDV','Satış Toplam',
+      'Kâr/Zarar','Şoför Net','Şoför Öd.','Tahsilat','Durum','Notlar'];
+    var COL_WIDTHS=[5,12,22,18,12,16,16,18,12,14,8,12,14,14,8,12,14,14,14,10,12,12,28];
+    var dataRows=jobs.map(function(j,i){ return [
+      jobs.length-i, fmtDate(j.date), j.customerName||'',
+      ((j.contactFirst||'')+' '+(j.contactLast||'')).trim(),
+      j.cargoType||'', j.origin||'', j.destination||'',
+      ((j.driverFirst||'')+' '+(j.driverLast||'')).trim(), j.plate||'',
+      j.buyPrice||0, j.buyKdvPct||0, j.buyKdv||0, j.buyTotal||0,
+      j.sellPrice||0, j.sellKdvPct||0, j.sellKdv||0, j.sellTotal||0,
+      j.profit||0, j.driverNet||0, j.driverPaid?'Ödendi':'Bekliyor',
+      j.paid?'Tahsil Edildi':'Bekliyor', j.jobStatus||'yolda', j.notes||''
+    ];});
+    function cellStyle(bg,fg,bold,border){return{
+      fill:{fgColor:{rgb:bg}},font:{name:'Calibri',sz:10,bold:!!bold,color:{rgb:fg||'0F172A'}},
+      alignment:{vertical:'center',wrapText:false},
+      border:border?{top:{style:'thin',color:{rgb:C_BORDER}},bottom:{style:'thin',color:{rgb:C_BORDER}},left:{style:'thin',color:{rgb:C_BORDER}},right:{style:'thin',color:{rgb:C_BORDER}}}:{}
+    };}
+    var wsData=[HEADERS].concat(dataRows);
+    var ws=XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols']=COL_WIDTHS.map(function(w){return{wch:w};});
+    ws['!rows']=[{hpt:22}];
+    var colCount=HEADERS.length, rowCount=dataRows.length;
+    for(var c=0;c<colCount;c++){var ref=XLSX.utils.encode_cell({r:0,c:c});if(!ws[ref])ws[ref]={v:HEADERS[c],t:'s'};ws[ref].s=cellStyle(C_HEADER_BG,C_HEADER_FG,true,true);}
+    for(var row=1;row<=rowCount;row++){var isEven=row%2===0;var rowBg=isEven?C_ROW_EVEN:C_ROW_ODD;
+      for(var col=0;col<colCount;col++){var ref2=XLSX.utils.encode_cell({r:row,c:col});if(!ws[ref2])ws[ref2]={v:'',t:'s'};
+        if(col>=9&&col<=18&&ws[ref2].v!==''){ws[ref2].t='n';ws[ref2].z='#,##0.00 ₺';}
+        var pcolor='0F172A';if(col===17){pcolor=(ws[ref2].v||0)>=0?'059669':'DC2626';}
+        ws[ref2].s=cellStyle(rowBg,pcolor,col===17,true);
+      }}
+    ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:0,c:HEADERS.length-1}})};
+    var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'İş Kayıtları');
+    var dateStr=new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb,'goker-is-kayitlari-'+dateStr+'.xlsx');
+    showToast('✓ '+rowCount+' kayıt Excel\'e aktarıldı');
+  }catch(err){showToast('Excel hatası: '+err.message);}
 }
 
 // ═══════════════════════════════════════════════════════
