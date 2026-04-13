@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.2/dist/apexcharts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.1/dist/apexcharts.min.js"></script>
 <style>
 /* ── Değişkenler ── */
 :root {
@@ -599,7 +599,7 @@ html, body {
 .kpi-card-v2.kv-amber::before { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
 .kpi-card-v2.kv-slate::before { background: linear-gradient(90deg,#475569,#64748b); }
 .kpi-card-v2.kv-active { animation: kpi-sefer-pulse 2.8s ease-in-out infinite; }
-.kpi-v2-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.kpi-v2-label { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 .kpi-v2-value { font-family: var(--font-mono); font-size: 32px; font-weight: 800; line-height: 1; margin: 4px 0 2px; transition: transform .3s ease; }
 .kpi-card-v2:hover .kpi-v2-value { transform: scale(1.04); }
 .kpi-v2-value.kv-indigo { color: #818cf8; }
@@ -624,6 +624,11 @@ html, body {
 .kpi-v2-value.kv-green { color: #34d399; }
 @media(max-width:768px){ .cari-band { grid-template-columns: repeat(2,1fr); } .kpi-v2-right { display:none; } }
 @media(max-width:480px){ .cari-band { grid-template-columns: 1fr; } }
+@media(max-width:390px) {
+  .cari-band { grid-template-columns: 1fr; gap: 10px; }
+  .kpi-v2-value { font-size: 22px !important; }
+  .portal-content { padding: 12px 10px; }
+}
 /* Tedarik zinciri card */
 .tedarik-col { display: flex; flex-direction: column; gap: 6px; }
 .tedarik-col-title { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 2px; }
