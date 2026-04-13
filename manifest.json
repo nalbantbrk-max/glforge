@@ -1,14 +1,13 @@
 {
-  "name": "Göker Lojistik CRM",
-  "short_name": "Göker CRM",
-  "description": "Göker Lojistik iş yönetim ve fatura sistemi",
-  "start_url": "/goker/",
-  "scope": "/goker/",
+  "name": "FORGE by Blacksmith",
+  "short_name": "FORGE",
+  "description": "Göker Lojistik - CRM & Müşteri Portalı",
+  "start_url": "/glforge/",
+  "scope": "/glforge/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#112240",
-  "orientation": "portrait-primary",
-  "lang": "tr",
+  "orientation": "portrait",
+  "background_color": "#0F1829",
+  "theme_color": "#F59E0B",
   "icons": [
     {
       "src": "icon.svg",
@@ -16,7 +15,5 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ],
-  "categories": ["business", "productivity"],
-  "screenshots": []
+  ]
 }
