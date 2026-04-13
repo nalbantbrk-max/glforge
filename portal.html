@@ -431,7 +431,7 @@ html, body {
 /* ── Cari Özet Bandı ── */
 .cari-band {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 28px;
   animation: fadeSlideUp .35s cubic-bezier(.4,0,.2,1);
@@ -610,6 +610,20 @@ html, body {
 .kpi-trend-up   { color: #34d399; font-weight: 700; font-size: 11px; }
 .kpi-trend-down { color: #f87171; font-weight: 700; font-size: 11px; }
 .kpi-trend-flat { color: var(--muted); font-weight: 700; font-size: 11px; }
+/* kpi-card-v2 içi layout */
+.kpi-v2-body { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.kpi-v2-left { flex: 1; min-width: 0; }
+.kpi-v2-right { flex-shrink: 0; width: 90px; margin-top: 4px; }
+/* rose renk */
+.kpi-card-v2.kv-rose:hover { box-shadow: 0 8px 32px rgba(244,63,94,.2), 0 0 0 1px rgba(244,63,94,.15); }
+.kpi-card-v2.kv-rose::before { background: linear-gradient(90deg,#f43f5e,#fb7185); }
+.kpi-v2-value.kv-rose { color: #fb7185; }
+/* green renk */
+.kpi-card-v2.kv-green:hover { box-shadow: 0 8px 32px rgba(16,185,129,.2), 0 0 0 1px rgba(16,185,129,.15); }
+.kpi-card-v2.kv-green::before { background: linear-gradient(90deg,#10b981,#34d399); }
+.kpi-v2-value.kv-green { color: #34d399; }
+@media(max-width:768px){ .cari-band { grid-template-columns: repeat(2,1fr); } .kpi-v2-right { display:none; } }
+@media(max-width:480px){ .cari-band { grid-template-columns: 1fr; } }
 /* Tedarik zinciri card */
 .tedarik-col { display: flex; flex-direction: column; gap: 6px; }
 .tedarik-col-title { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 2px; }
@@ -1071,7 +1085,6 @@ tbody td {
   }
 
   .cari-band {
-    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     margin-bottom: 16px;
   }
@@ -1333,35 +1346,76 @@ tbody td {
     <!-- KPI Kartları -->
     <div class="cari-band" id="kpi-band">
 
-      <!-- 1. Aktif Sefer — nefes alan -->
-      <div class="kpi-card-v2 kv-indigo kv-active" id="kpi-aktif-card">
-        <div class="kpi-v2-label">🚛 Aktif Sefer</div>
-        <div class="kpi-v2-value kv-indigo" id="kpi-v2-aktif">—</div>
-        <div class="kpi-v2-sub" id="kpi-v2-aktif-sub">Şu an yolda</div>
-      </div>
-
-      <!-- 2. Bu Ay -->
-      <div class="kpi-card-v2 kv-emerald">
-        <div class="kpi-v2-label">📦 Bu Ay</div>
-        <div class="kpi-v2-value kv-emerald" id="kpi-v2-buay">—</div>
-        <div class="kpi-v2-sub">
-          <span id="kpi-v2-buay-trend"></span>
-          <span id="kpi-v2-buay-sub">taşıma</span>
+      <!-- 1. Aktif Sefer -->
+      <div class="kpi-card-v2 kv-indigo" id="kpi-aktif-card">
+        <div class="kpi-v2-label">🚛 AKTİF SEFER</div>
+        <div class="kpi-v2-body">
+          <div class="kpi-v2-left">
+            <div class="kpi-v2-value kv-indigo" id="kpi-v2-aktif">—</div>
+            <div class="kpi-v2-sub" id="kpi-v2-aktif-sub">şu an yolda</div>
+          </div>
+          <div class="kpi-v2-right" id="spark-aktif"></div>
         </div>
       </div>
 
-      <!-- 3. Toplam Tamamlanan -->
-      <div class="kpi-card-v2 kv-slate">
-        <div class="kpi-v2-label">✅ Tamamlanan</div>
-        <div class="kpi-v2-value kv-slate" id="kpi-v2-tamamlanan">—</div>
-        <div class="kpi-v2-sub" id="kpi-v2-birlikte">başarılı teslimat</div>
+      <!-- 2. Bu Ay Ciro -->
+      <div class="kpi-card-v2 kv-emerald">
+        <div class="kpi-v2-label">💰 BU AY CİRO</div>
+        <div class="kpi-v2-body">
+          <div class="kpi-v2-left">
+            <div class="kpi-v2-value kv-emerald" id="kpi-v2-ciro" style="font-size:18px;margin-top:6px">—</div>
+            <div class="kpi-v2-sub"><span id="kpi-v2-ciro-trend"></span></div>
+          </div>
+          <div class="kpi-v2-right" id="spark-ciro"></div>
+        </div>
       </div>
 
-      <!-- 4. Kalan Bakiye -->
+      <!-- 3. Bu Ay Tamamlanan -->
+      <div class="kpi-card-v2 kv-green">
+        <div class="kpi-v2-label">✅ BU AY TESLİMAT</div>
+        <div class="kpi-v2-body">
+          <div class="kpi-v2-left">
+            <div class="kpi-v2-value kv-green" id="kpi-v2-tamamlanan">—</div>
+            <div class="kpi-v2-sub" id="kpi-v2-birlikte">başarılı teslimat</div>
+          </div>
+          <div class="kpi-v2-right" id="spark-tamamlanan"></div>
+        </div>
+      </div>
+
+      <!-- 4. Tahsilat Oranı -->
       <div class="kpi-card-v2 kv-amber">
-        <div class="kpi-v2-label">💳 Kalan Bakiye</div>
-        <div class="kpi-v2-value kv-amber" id="kpi-v2-bakiye" style="font-size:22px;margin-top:6px">—</div>
-        <div class="kpi-v2-sub" id="kpi-v2-bakiye-sub">ödenmemiş</div>
+        <div class="kpi-v2-label">📊 TAHSİLAT ORANI</div>
+        <div class="kpi-v2-body">
+          <div class="kpi-v2-left">
+            <div class="kpi-v2-value kv-amber" id="kpi-v2-tahsilat-oran" style="font-size:26px">—</div>
+            <div class="kpi-v2-sub" id="kpi-v2-tahsilat-sub">tahsil edildi</div>
+          </div>
+          <div class="kpi-v2-right" id="spark-tahsilat"></div>
+        </div>
+      </div>
+
+      <!-- 5. Kalan Bakiye -->
+      <div class="kpi-card-v2 kv-rose">
+        <div class="kpi-v2-label">💳 KALAN BAKİYE</div>
+        <div class="kpi-v2-body">
+          <div class="kpi-v2-left">
+            <div class="kpi-v2-value kv-rose" id="kpi-v2-bakiye" style="font-size:16px;margin-top:6px">—</div>
+            <div class="kpi-v2-sub" id="kpi-v2-bakiye-sub">ödenmemiş</div>
+          </div>
+          <div class="kpi-v2-right" id="spark-bakiye"></div>
+        </div>
+      </div>
+
+      <!-- 6. Bu Ay Toplam İş -->
+      <div class="kpi-card-v2 kv-slate">
+        <div class="kpi-v2-label">📦 BU AY TOPLAM</div>
+        <div class="kpi-v2-body">
+          <div class="kpi-v2-left">
+            <div class="kpi-v2-value kv-slate" id="kpi-v2-buay">—</div>
+            <div class="kpi-v2-sub"><span id="kpi-v2-buay-trend"></span></div>
+          </div>
+          <div class="kpi-v2-right" id="spark-buay"></div>
+        </div>
       </div>
 
     </div>
@@ -1936,6 +1990,11 @@ function renderAll() {
 }
 
 function renderKPI() {
+  var now = new Date();
+  var curYM  = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  var prevDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  var prevYM = prevDate.getFullYear() + '-' + String(prevDate.getMonth()+1).padStart(2,'0');
+
   // 1. Aktif Sefer
   var active = allData.filter(function(r) {
     return ['yüklendi','yuklendi','yolda'].includes((r.durum||'').toLowerCase());
@@ -1944,18 +2003,82 @@ function renderKPI() {
   var aktifSubEl = document.getElementById('kpi-v2-aktif-sub');
   var aktifCard = document.getElementById('kpi-aktif-card');
   if (aktifEl) animateValue(aktifEl, active, 600);
-  if (aktifSubEl) aktifSubEl.textContent = active > 0 ? 'sefer aktif, yolda' : 'şu an aktif sefer yok';
-  // Aktif yoksa pulse animasyonu durdur
+  if (aktifSubEl) aktifSubEl.textContent = active > 0 ? 'araç şu an yolda' : 'aktif sefer yok';
   if (aktifCard) {
     if (active > 0) aktifCard.classList.add('kv-active');
     else aktifCard.classList.remove('kv-active');
   }
 
-  // 2. Bu Ay + MoM trend
-  var now = new Date();
-  var curYM = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-  var prevDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
-  var prevYM = prevDate.getFullYear() + '-' + String(prevDate.getMonth()+1).padStart(2,'0');
+  // 2. Bu Ay Ciro
+  var curCiro = 0, prevCiro = 0;
+  allData.forEach(function(r) {
+    var t = parseFloat(r.fatura_net) || parseFloat(r.fatura_tutar) || 0;
+    if (r.tarih && r.tarih.startsWith(curYM))  curCiro  += t;
+    if (r.tarih && r.tarih.startsWith(prevYM)) prevCiro += t;
+  });
+  var ciroEl = document.getElementById('kpi-v2-ciro');
+  var ciroTrendEl = document.getElementById('kpi-v2-ciro-trend');
+  if (ciroEl) ciroEl.textContent = formatTL(curCiro);
+  if (ciroTrendEl) {
+    if (prevCiro === 0 && curCiro === 0) {
+      ciroTrendEl.textContent = '';
+    } else {
+      var momCiro = prevCiro > 0 ? Math.round((curCiro - prevCiro) / prevCiro * 100) : (curCiro > 0 ? 100 : 0);
+      if (momCiro > 0) { ciroTrendEl.className = 'kpi-trend-up'; ciroTrendEl.textContent = '▲ %' + momCiro + ' geçen ay'; }
+      else if (momCiro < 0) { ciroTrendEl.className = 'kpi-trend-down'; ciroTrendEl.textContent = '▼ %' + Math.abs(momCiro) + ' geçen ay'; }
+      else { ciroTrendEl.className = 'kpi-trend-flat'; ciroTrendEl.textContent = '— geçen ayla aynı'; }
+    }
+  }
+
+  // 3. Bu Ay Tamamlanan
+  var completedThisMonth = allData.filter(function(r) {
+    var d = (r.durum||'').toLowerCase();
+    var lc = (r.lifecycle_status||'').toLowerCase();
+    var isTamamlanan = d.includes('tamaml') || d === 'teslim' || lc === 'completed';
+    return isTamamlanan && r.tarih && r.tarih.startsWith(curYM);
+  }).length;
+  var completedTotal = allData.filter(function(r) {
+    var d = (r.durum||'').toLowerCase();
+    var lc = (r.lifecycle_status||'').toLowerCase();
+    return d.includes('tamaml') || d === 'teslim' || lc === 'completed';
+  }).length;
+  var tamamEl = document.getElementById('kpi-v2-tamamlanan');
+  var birlikteEl = document.getElementById('kpi-v2-birlikte');
+  if (tamamEl) animateValue(tamamEl, completedThisMonth, 900);
+  if (birlikteEl) {
+    var dates = allData.map(function(r){ return r.tarih; }).filter(Boolean).sort();
+    if (dates.length) {
+      var months = Math.max(1, Math.round((new Date() - new Date(dates[0])) / (1000*60*60*24*30.5)));
+      birlikteEl.textContent = 'toplam ' + completedTotal + ' teslimat · ' + months + ' ay';
+    } else {
+      birlikteEl.textContent = 'toplam ' + completedTotal + ' başarılı teslimat';
+    }
+  }
+
+  // 4. Tahsilat Oranı
+  var totalFatura = 0, _odendi = 0;
+  allData.forEach(function(r) {
+    var t = parseFloat(r.fatura_net) || parseFloat(r.fatura_tutar) || 0;
+    totalFatura += t;
+    if ((r.odeme_durumu||'').toLowerCase() === 'odendi') _odendi += t;
+  });
+  var tahsilatOran = totalFatura > 0 ? Math.round(_odendi / totalFatura * 100) : 0;
+  var tahsilatOranEl = document.getElementById('kpi-v2-tahsilat-oran');
+  var tahsilatSubEl  = document.getElementById('kpi-v2-tahsilat-sub');
+  if (tahsilatOranEl) tahsilatOranEl.textContent = '%' + tahsilatOran;
+  if (tahsilatSubEl) tahsilatSubEl.textContent = formatTL(_odendi) + ' tahsil edildi';
+
+  // 5. Kalan Bakiye
+  var kalan = totalFatura - _odendi;
+  var bakiyeEl = document.getElementById('kpi-v2-bakiye');
+  var bakiyeSubEl = document.getElementById('kpi-v2-bakiye-sub');
+  if (bakiyeEl) bakiyeEl.textContent = formatTL(kalan);
+  if (bakiyeSubEl) {
+    var bekleyenCount = allData.filter(function(r){ return (r.odeme_durumu||'').toLowerCase() !== 'odendi'; }).length;
+    bakiyeSubEl.textContent = bekleyenCount + ' fatura bekliyor';
+  }
+
+  // 6. Bu Ay Toplam
   var curCount  = allData.filter(function(r){ return r.tarih && r.tarih.startsWith(curYM); }).length;
   var prevCount = allData.filter(function(r){ return r.tarih && r.tarih.startsWith(prevYM); }).length;
   var momPct = prevCount > 0 ? Math.round((curCount - prevCount) / prevCount * 100) : (curCount > 0 ? 100 : 0);
@@ -1966,55 +2089,161 @@ function renderKPI() {
     if (prevCount === 0 && curCount === 0) {
       trendEl.textContent = '';
     } else if (momPct > 0) {
-      trendEl.className = 'kpi-trend-up';
-      trendEl.textContent = '▲ %' + momPct + ' geçen aya göre';
+      trendEl.className = 'kpi-trend-up'; trendEl.textContent = '▲ %' + momPct + ' geçen aya göre';
     } else if (momPct < 0) {
-      trendEl.className = 'kpi-trend-down';
-      trendEl.textContent = '▼ %' + Math.abs(momPct) + ' geçen aya göre';
+      trendEl.className = 'kpi-trend-down'; trendEl.textContent = '▼ %' + Math.abs(momPct) + ' geçen aya göre';
     } else {
-      trendEl.className = 'kpi-trend-flat';
-      trendEl.textContent = '— geçen ayla aynı';
+      trendEl.className = 'kpi-trend-flat'; trendEl.textContent = '— geçen ayla aynı';
     }
   }
 
-  // 3. Toplam Tamamlanan + birlikte kaç ay
-  var completed = allData.filter(function(r) {
-    var d = (r.durum||'').toLowerCase();
-    var lc = (r.lifecycle_status||'').toLowerCase();
-    return d.includes('tamaml') || lc === 'completed';
-  }).length;
-  var tamamEl = document.getElementById('kpi-v2-tamamlanan');
-  var birlikteEl = document.getElementById('kpi-v2-birlikte');
-  if (tamamEl) animateValue(tamamEl, completed, 900);
-  if (birlikteEl) {
-    var dates = allData.map(function(r){ return r.tarih; }).filter(Boolean).sort();
-    if (dates.length) {
-      var months = Math.max(1, Math.round((new Date() - new Date(dates[0])) / (1000*60*60*24*30.5)));
-      birlikteEl.textContent = months + ' aydır birlikte · başarılı teslimat';
-    } else {
-      birlikteEl.textContent = 'başarılı teslimat';
-    }
-  }
-
-  // 4. Kalan Bakiye
-  var totalFatura = 0, odenen = 0;
-  allData.forEach(function(r) {
-    var t = parseFloat(r.fatura_net) || parseFloat(r.fatura_tutar) || 0;
-    totalFatura += t;
-    if ((r.odeme_durumu||'').toLowerCase() === 'odendi') odenen += t;
-  });
-  var kalan = totalFatura - odenen;
-  var bakiyeEl = document.getElementById('kpi-v2-bakiye');
-  var bakiyeSubEl = document.getElementById('kpi-v2-bakiye-sub');
-  if (bakiyeEl) bakiyeEl.textContent = formatTL(kalan);
-  if (bakiyeSubEl) {
-    var bekleyenCount = allData.filter(function(r){ return (r.odeme_durumu||'').toLowerCase() !== 'odendi'; }).length;
-    bakiyeSubEl.textContent = bekleyenCount + ' fatura bekliyor';
-  }
+  // Sparklines
+  setTimeout(function(){ renderSparklines(); }, 100);
 }
 
 function renderCariOzet() {
   // cari-ozet-card kaldırıldı — renderKPI içinde kalan bakiye gösteriliyor
+}
+
+var _sparkCharts = {};
+
+function destroySparkChart(id) {
+  if (_sparkCharts[id]) {
+    try { _sparkCharts[id].destroy(); } catch(e) {}
+    delete _sparkCharts[id];
+  }
+}
+
+function getMonths(n) {
+  var res = [];
+  var now = new Date();
+  for (var i = n-1; i >= 0; i--) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    res.push({
+      ym: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'),
+      lbl: ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'][d.getMonth()]
+    });
+  }
+  return res;
+}
+
+function mkSpark(elId, type, series, color, opts) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  destroySparkChart(elId);
+  var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  var base = {
+    chart: {
+      type: type,
+      height: 65,
+      sparkline: { enabled: true },
+      animations: { enabled: true, speed: 600 },
+      background: 'transparent'
+    },
+    theme: { mode: isLight ? 'light' : 'dark' },
+    stroke: { width: type === 'line' || type === 'area' ? 2 : 0, curve: 'smooth' },
+    fill: type === 'area' ? { type: 'gradient', gradient: { shadeIntensity: .8, opacityFrom: .5, opacityTo: .05 } } : {},
+    colors: [color],
+    tooltip: {
+      fixed: { enabled: false },
+      x: { show: false },
+      marker: { show: false },
+      style: { fontSize: '10px' }
+    },
+    series: series
+  };
+  if (opts) Object.keys(opts).forEach(function(k){ base[k] = opts[k]; });
+  try {
+    _sparkCharts[elId] = new ApexCharts(el, base);
+    _sparkCharts[elId].render();
+  } catch(e) {}
+}
+
+function renderSparklines() {
+  var months6 = getMonths(6);
+
+  // 1. Aktif Sefer — son 6 ay yolda/yuklendi sayısı
+  var aktifSeries = months6.map(function(m) {
+    return allData.filter(function(r) {
+      return r.tarih && r.tarih.startsWith(m.ym) &&
+        ['yüklendi','yuklendi','yolda'].includes((r.durum||'').toLowerCase());
+    }).length;
+  });
+  mkSpark('spark-aktif', 'area', [{name:'Aktif',data:aktifSeries}], '#818cf8');
+
+  // 2. Bu Ay Ciro — son 6 ay KDV hariç ciro
+  var ciroSeries = months6.map(function(m) {
+    var sum = 0;
+    allData.forEach(function(r) {
+      if (r.tarih && r.tarih.startsWith(m.ym))
+        sum += parseFloat(r.fatura_net) || parseFloat(r.fatura_tutar) || 0;
+    });
+    return Math.round(sum);
+  });
+  mkSpark('spark-ciro', 'bar', [{name:'Ciro',data:ciroSeries}], '#34d399', {
+    plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } }
+  });
+
+  // 3. Bu Ay Tamamlanan — son 6 ay teslim edilen
+  var tamamSeries = months6.map(function(m) {
+    return allData.filter(function(r) {
+      var d = (r.durum||'').toLowerCase();
+      var lc = (r.lifecycle_status||'').toLowerCase();
+      return (d.includes('tamaml') || d === 'teslim' || lc === 'completed') &&
+        r.tarih && r.tarih.startsWith(m.ym);
+    }).length;
+  });
+  mkSpark('spark-tamamlanan', 'bar', [{name:'Teslim',data:tamamSeries}], '#34d399', {
+    plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } }
+  });
+
+  // 4. Tahsilat Oranı — donut (ödendi vs bekliyor)
+  var odenenToplam = 0, bekleyenToplam = 0;
+  allData.forEach(function(r) {
+    var t = parseFloat(r.fatura_net) || parseFloat(r.fatura_tutar) || 0;
+    if ((r.odeme_durumu||'').toLowerCase() === 'odendi') odenenToplam += t;
+    else bekleyenToplam += t;
+  });
+  var tahsilatEl = document.getElementById('spark-tahsilat');
+  if (tahsilatEl) {
+    destroySparkChart('spark-tahsilat');
+    var isLight2 = document.documentElement.getAttribute('data-theme') === 'light';
+    try {
+      _sparkCharts['spark-tahsilat'] = new ApexCharts(tahsilatEl, {
+        chart: { type: 'donut', height: 65, sparkline: { enabled: true }, background: 'transparent', animations: { enabled: true, speed: 600 } },
+        theme: { mode: isLight2 ? 'light' : 'dark' },
+        series: [Math.round(odenenToplam), Math.round(bekleyenToplam)],
+        labels: ['Ödendi','Bekliyor'],
+        colors: ['#f59e0b','#475569'],
+        dataLabels: { enabled: false },
+        legend: { show: false },
+        tooltip: { style: { fontSize: '10px' } },
+        plotOptions: { pie: { donut: { size: '65%' } } }
+      });
+      _sparkCharts['spark-tahsilat'].render();
+    } catch(e) {}
+  }
+
+  // 5. Kalan Bakiye — son 6 ay birikimli bakiye trendi
+  var bakiyeSeries = months6.map(function(m) {
+    var b = 0;
+    allData.forEach(function(r) {
+      if (r.tarih && r.tarih <= m.ym + '-31') {
+        var t = parseFloat(r.fatura_net) || parseFloat(r.fatura_tutar) || 0;
+        if ((r.odeme_durumu||'').toLowerCase() !== 'odendi') b += t;
+      }
+    });
+    return Math.round(b);
+  });
+  mkSpark('spark-bakiye', 'line', [{name:'Bakiye',data:bakiyeSeries}], '#fb7185');
+
+  // 6. Bu Ay Toplam — son 6 ay iş sayısı
+  var buaySeries = months6.map(function(m) {
+    return allData.filter(function(r){ return r.tarih && r.tarih.startsWith(m.ym); }).length;
+  });
+  mkSpark('spark-buay', 'bar', [{name:'İş',data:buaySeries}], '#94a3b8', {
+    plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } }
+  });
 }
 
 function renderTable() {
