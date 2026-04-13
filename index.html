@@ -2285,8 +2285,8 @@ body.sidebar-expanded .tab-panel.active {
           </div>
           <div class="dash-map-section">
             <div class="dash-map-section-title">ROTA HESAPLA</div>
-            <input id="mapFrom" class="dash-map-input" type="search" placeholder="📍 Nereden..." autocomplete="off" spellcheck="false">
-            <input id="mapTo" class="dash-map-input" type="search" placeholder="🏁 Nereye..." autocomplete="off" spellcheck="false">
+            <input id="mapFrom" name="route_origin" class="dash-map-input" type="text" placeholder="📍 Nereden..." autocomplete="new-password">
+            <input id="mapTo" name="route_dest" class="dash-map-input" type="text" placeholder="🏁 Nereye..." autocomplete="new-password">
             <button class="dash-map-calc-btn" onclick="calcMapRoute()">📏 Hesapla</button>
             <div id="mapRouteResult" class="dash-map-result" style="display:none"></div>
           </div>
