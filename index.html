@@ -1199,7 +1199,7 @@ input:not([type="email"]):not([type="number"]):not([type="date"]):not([type="tel
   .tab-wrap-outer{display:none!important}
   #mobSecBar{display:none!important}
   .mob-tabbar{display:flex}
-  .tab-panel.active{display:block!important;padding-bottom:80px!important}
+  .tab-panel.active{display:block!important;padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))!important}
   .form-panel{grid-template-columns:1fr!important}
   .form-col{padding:12px;max-height:none!important;overflow-y:visible!important;border-right:none;border-bottom:1px solid var(--border)}
   .sf-two{grid-template-columns:1fr!important}
@@ -1323,6 +1323,11 @@ input:not([type="email"]):not([type="number"]):not([type="date"]):not([type="tel
   body{padding-top:56px!important}
   /* #mobSecBar gizlendiği için top override'ına gerek yok */
   #mobSecBar{top:60px!important;display:none!important}
+}
+@media(max-width:768px) and (display-mode:standalone){
+  body{padding-top:calc(56px + env(safe-area-inset-top,0px))!important}
+  #mobileStatsBar{top:calc(56px + env(safe-area-inset-top,0px))!important}
+  #mobSecBar{top:calc(56px + env(safe-area-inset-top,0px))!important}
 }
 /* Telefon yatayda ~769px+ olur → sidebar scroll düzelt */
 @media(min-width:769px) and (max-width:1024px) and (orientation:landscape){
@@ -14643,6 +14648,7 @@ function getCommonApexOptions() {
     chart: {
       background: "transparent",
       toolbar: { show: false },
+      zoom: { enabled: false },
       animations: {
         enabled: true, easing: "easeinout", speed: 800,
         animateGradually: { enabled: true, delay: 80 },
@@ -14653,7 +14659,13 @@ function getCommonApexOptions() {
     theme: { mode: isDark ? "dark" : "light" },
     grid: { borderColor: gridColor, strokeDashArray: 4, padding: { left: 4, right: 4 } },
     xaxis: {
-      labels: { style: { colors: textColor, fontSize: "11px" } },
+      labels: {
+        style: { colors: textColor, fontSize: "11px" },
+        rotate: -45,
+        rotateAlways: false,
+        hideOverlappingLabels: true,
+        trim: true
+      },
       axisBorder: { show: false }, axisTicks: { show: false }
     },
     yaxis: {
@@ -14843,6 +14855,24 @@ function syncFsbBadges() {
 // Periyodik badge sync
 setInterval(syncFsbBadges, 3000);
 setTimeout(syncFsbBadges, 1000);
+// Alt nav scroll hide/show (sadece browser modunda)
+(function(){
+  var _navBar = document.querySelector('.mob-tabbar');
+  if (!_navBar) return;
+  if (window.matchMedia('(display-mode:standalone)').matches || window.navigator.standalone) return;
+  var _lastScrollY = 0, _navHidden = false;
+  window.addEventListener('scroll', function(){
+    var y = window.scrollY || window.pageYOffset;
+    if (y > _lastScrollY + 8 && !_navHidden && y > 80) {
+      _navBar.style.transform = 'translateY(110%)';
+      _navHidden = true;
+    } else if (y < _lastScrollY - 8 && _navHidden) {
+      _navBar.style.transform = 'translateY(0)';
+      _navHidden = false;
+    }
+    _lastScrollY = y;
+  }, {passive:true});
+})();
 </script>
 
 <!-- Fatura önizleme overlay — mobil uyumlu, window.open kullanmaz -->
