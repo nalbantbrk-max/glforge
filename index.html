@@ -2285,8 +2285,8 @@ body.sidebar-expanded .tab-panel.active {
           </div>
           <div class="dash-map-section">
             <div class="dash-map-section-title">ROTA HESAPLA</div>
-            <input id="mapFrom" class="dash-map-input" type="text" placeholder="📍 Nereden..." autocomplete="off" spellcheck="false" onfocus="setTimeout(function(){var v=document.getElementById('mapFrom').value;if(v.includes('@')||v.length>40)document.getElementById('mapFrom').value='';},80)">
-            <input id="mapTo" class="dash-map-input" type="text" placeholder="🏁 Nereye..." autocomplete="off" spellcheck="false" onfocus="setTimeout(function(){var v=document.getElementById('mapTo').value;if(v.includes('@')||v.length>40)document.getElementById('mapTo').value='';},80)">
+            <input id="mapFrom" class="dash-map-input" type="text" placeholder="📍 Nereden..." autocomplete="new-password" spellcheck="false">
+            <input id="mapTo" class="dash-map-input" type="text" placeholder="🏁 Nereye..." autocomplete="new-password" spellcheck="false">
             <button class="dash-map-calc-btn" onclick="calcMapRoute()">📏 Hesapla</button>
             <div id="mapRouteResult" class="dash-map-result" style="display:none"></div>
           </div>
@@ -4511,9 +4511,16 @@ function initDashMap() {
     _setupPlacesAC("mapFrom");
     _setupPlacesAC("mapTo");
 
-    // Enter ile hesapla
+    // Browser autofill temizleyici — email/credential gelirse sil
     ['mapFrom','mapTo'].forEach(function(id){
-      document.getElementById(id).addEventListener('keydown', function(e){ if(e.key==='Enter') calcMapRoute(); });
+      var el = document.getElementById(id);
+      el.addEventListener('keydown', function(e){ if(e.key==='Enter') calcMapRoute(); });
+      el.addEventListener('focus', function(){
+        setTimeout(function(){
+          var v = el.value;
+          if (v && (v.includes('@') || v.includes('http') || v.length > 60)) el.value = '';
+        }, 100);
+      });
     });
   }
   renderMapJobs();
